@@ -1,0 +1,2 @@
+ALTER TABLE users
+    ADD COLUMN is_defence_personnel BOOLEAN NOT NULL DEFAULT FALSE;

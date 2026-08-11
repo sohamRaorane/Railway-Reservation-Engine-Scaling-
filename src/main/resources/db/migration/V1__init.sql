@@ -1,0 +1,1 @@
+-- Initial Migration Script for Database Setup

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>Railway Reservation - Payment Test</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 80px auto;
+            padding: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Railway Reservation</h1>
+
+<p>
+    Razorpay Sandbox Payment Test
+</p>
+
+<button id="pay-button">
+    Pay Now
+</button>
+
+<p id="status"></p>
+
+
+<!-- Razorpay Checkout SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+<script>
+
+    /*
+     * These values come from our backend:
+     *
+     * POST /payment/initiate
+     *
+     * Example response:
+     *
+     * {
+     *     "razorpayOrderId": "order_xxxxx",
+     *     "keyId": "rzp_test_xxxxx",
+     *     "amount": 500.00,
+     *     "currency": "INR",
+     *     "pnr": "60FB4743FC"
+     * }
+     */
+
+
+    // --------------------------------------------------
+    // TEMPORARY TEST VALUES
+    // --------------------------------------------------
+
+    const keyId = "rzp_test_TNDBuagy1cIOMx";
+
+    const razorpayOrderId = "order_TNIuVeL7HWO285";
+
+
+    // --------------------------------------------------
+    // PAY BUTTON
+    // --------------------------------------------------
+
+    document.getElementById("pay-button").onclick = function () {
+
+        document.getElementById("status").innerText =
+            "Opening Razorpay Checkout...";
+
+
+        // --------------------------------------------------
+        // Razorpay Checkout configuration
+        // --------------------------------------------------
+
+        const options = {
+
+            // Razorpay TEST Key ID
+            key: keyId,
+
+            // Order created by our backend
+            order_id: razorpayOrderId,
+
+            // Information displayed in Razorpay Checkout
+            name: "Railway Reservation Engine",
+
+            description: "Railway Ticket Booking",
+
+
+            // --------------------------------------------------
+            // Called after successful payment
+            // --------------------------------------------------
+
+            handler: function (response) {
+
+                console.log("Payment successful!");
+
+                console.log(
+                    "Razorpay Payment ID:",
+                    response.razorpay_payment_id
+                );
+
+                console.log(
+                    "Razorpay Order ID:",
+                    response.razorpay_order_id
+                );
+
+                console.log(
+                    "Razorpay Signature:",
+                    response.razorpay_signature
+                );
+
+
+                document.getElementById("status").innerText =
+                    "Payment completed. Waiting for webhook...";
+            },
+
+
+            // --------------------------------------------------
+            // If checkout is closed
+            // --------------------------------------------------
+
+            modal: {
+
+                ondismiss: function () {
+
+                    document.getElementById("status").innerText =
+                        "Payment window closed.";
+
+                }
+
+            }
+
+        };
+
+
+        // Create Razorpay Checkout instance
+        const razorpay = new Razorpay(options);
+
+
+        // Open Razorpay Checkout
+        razorpay.open();
+
+    };
+
+</script>
+
+</body>
+
+</html>
