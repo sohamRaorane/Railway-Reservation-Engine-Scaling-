@@ -54,6 +54,11 @@ public class WaitlistPromotionService {
             Schedule schedule,
             Quota quota
     ){
+        //lock the quota  reservation pool for this schedule + quota
+        //this serialize RAC/WL promotion for the same quota
+        QuotaReservationPool reservationPool = quotaReservationPoolRepository.findForUpdate(schedule, quota)
+                .orElseThrow(() -> new RuntimeException("Quota reservation pool not found for the given schedule and quota"));
+
         Rac rac = racRepository.findFirstByScheduleAndQuotaOrderByRacNumberAsc(schedule, quota)
                 .orElse(null);
         if (rac == null) {
@@ -89,9 +94,26 @@ public class WaitlistPromotionService {
         booking.setBookingStatus(
                 BookingStatus.CONFIRMED
         );
-        QuotaReservationPool reservationPool = quotaReservationPoolRepository
-                .findByScheduleAndQuota(schedule, quota)
-                .orElseThrow(() -> new RuntimeException("Quota Reservation Pool not found for the given schedule and quota"));
+        QuotaSeatAllocation quotaSeatAllocation =
+                quotaSeatAllocationRepository
+                        .findByScheduleAndCoachAndQuota(
+                                schedule,
+                                allocatedSeat.getCoach(),
+                                quota
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Quota seat allocation not found."
+                                )
+                        );
+
+        quotaSeatAllocation.setAvailableSeats(
+                quotaSeatAllocation.getAvailableSeats() - 1
+        );
+
+        quotaSeatAllocationRepository.save(quotaSeatAllocation);
+
+
 
         reservationPool.setRacAvailable(reservationPool.getRacAvailable() + 1);
         racRepository.delete(rac);
@@ -123,6 +145,10 @@ public class WaitlistPromotionService {
     }
 
     public  void promoteWaitlistToRac(Schedule schedule, Quota quota){
+        //lock  quota pool before generating rac number
+        QuotaReservationPool reservationPool = quotaReservationPoolRepository.findForUpdate(schedule, quota)
+                .orElseThrow(() -> new RuntimeException("Quota reservation pool not found for the schedule and quota"));
+
         Waitlist waitlist = waitlistRepository.findFirstByScheduleAndQuotaOrderByWaitlistNumberAsc(schedule, quota)
                 .orElse(null);
         if(waitlist == null) return;
@@ -132,12 +158,13 @@ public class WaitlistPromotionService {
         racRepository.save(rac);
 
         waitlistRepository.delete(waitlist);
-        QuotaReservationPool reservationPool = quotaReservationPoolRepository.findByScheduleAndQuota(schedule, quota)
-                .orElseThrow(() -> new RuntimeException("Quota Reservation Pool not found for the given schedule and quota"));
+
         reservationPool.setRacAvailable(reservationPool.getRacAvailable() - 1);
 
         // so now the waitlist position has became available hence
         reservationPool.setWaitlistAvailable(reservationPool.getWaitlistAvailable() + 1);
+
+        //at the end of trancstion commit hibernate persists the modified pool
     }
 
 
@@ -145,6 +172,8 @@ public class WaitlistPromotionService {
             Schedule schedule,
             Quota quota
     ) {
+        QuotaReservationPool reservationPool = quotaReservationPoolRepository.findForUpdate(schedule, quota)
+                .orElseThrow(() -> new RuntimeException("Quota reservation pool not found for the given schedule and quota"));
 
         Waitlist waitlist = waitlistRepository
                 .findFirstByScheduleAndQuotaOrderByWaitlistNumberAsc(
@@ -186,17 +215,7 @@ public class WaitlistPromotionService {
 
         waitlistRepository.delete(waitlist);
 
-        QuotaReservationPool reservationPool =
-                quotaReservationPoolRepository
-                        .findByScheduleAndQuota(
-                                schedule,
-                                quota
-                        )
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Quota Reservation Pool not found."
-                                )
-                        );
+
 
         reservationPool.setWaitlistAvailable(
                 reservationPool.getWaitlistAvailable() + 1

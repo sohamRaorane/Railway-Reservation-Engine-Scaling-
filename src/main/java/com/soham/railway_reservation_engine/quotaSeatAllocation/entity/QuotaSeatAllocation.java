@@ -55,6 +55,4 @@ public class QuotaSeatAllocation {
     private Coach coach;
 
 
-
-
 }

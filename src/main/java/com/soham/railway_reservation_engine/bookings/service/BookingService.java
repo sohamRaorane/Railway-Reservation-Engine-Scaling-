@@ -13,6 +13,7 @@ import com.soham.railway_reservation_engine.bookings.validator.QuotaEligibilityV
 import com.soham.railway_reservation_engine.coach.entity.Coach;
 import com.soham.railway_reservation_engine.common.enums.BookingStatus;
 import com.soham.railway_reservation_engine.common.enums.PassengerStatus;
+import com.soham.railway_reservation_engine.common.enums.ScheduleStatus;
 import com.soham.railway_reservation_engine.passenger.entity.Passenger;
 import com.soham.railway_reservation_engine.passenger.repository.PassengerRepository;
 import com.soham.railway_reservation_engine.quota.entity.Quota;
@@ -107,6 +108,11 @@ public class BookingService {
         //Find Schedule
         Schedule schedule = scheduleRepository.findByTrainAndJourneyDate(train, bookingRequest.journeyDate())
                 .orElseThrow(() -> new RuntimeException("Schedule not found for train: " + train.getId() + " on date: " + bookingRequest.journeyDate()));
+
+        if(schedule.getStatus() != ScheduleStatus.OPEN){
+            throw new IllegalStateException("Booking is closed for this schedule. and the current status is " + schedule.getStatus());
+
+        }
 
 
         //Find Quota
