@@ -120,19 +120,27 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException("Quota not found with code: " + bookingRequest.quotaCode()));
 
         //so now you have all the details --> lets start creating a booking obj
-
+        System.out.println("========== COACH TYPE DEBUG ==========");
+        System.out.println("Requested Coach Type = " + bookingRequest.coachType());
+        System.out.println("======================================");
         //Booking object
         Booking booking = Booking.builder()
                 .pnr(generatePnr())
                 .user(user)
                 .schedule(schedule)
                 .quota(quota)
+                .coachType(bookingRequest.coachType())
                 .idempotencyKey(idempotencyKey)
                 .bookingStatus(BookingStatus.PENDING_PAYMENT)
                 .totalFare(BigDecimal.ZERO) //
                 .build();
         //Save booking
         Booking savedBooking = bookingRepository.save(booking);
+        System.out.println("========== SAVED BOOKING DEBUG ==========");
+        System.out.println("Booking ID = " + savedBooking.getId());
+        System.out.println("PNR = " + savedBooking.getPnr());
+        System.out.println("Saved Coach Type = " + savedBooking.getCoachType());
+        System.out.println("==========================================");
         //here only booking object is created and it is not saved yet
         // still for a booking we need to create the passengers and allocate them the
         //seats

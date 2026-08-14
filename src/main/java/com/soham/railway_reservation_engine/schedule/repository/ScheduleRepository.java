@@ -1,5 +1,6 @@
 package com.soham.railway_reservation_engine.schedule.repository;
 
+import com.soham.railway_reservation_engine.common.enums.ScheduleStatus;
 import com.soham.railway_reservation_engine.schedule.entity.Schedule;
 import com.soham.railway_reservation_engine.train.dto.TrainSearchResponse;
 import com.soham.railway_reservation_engine.train.entity.Train;
@@ -8,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,6 +51,21 @@ public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
             @Param("source") String source,
             @Param("destination") String destination,
             @Param("journeyDate") LocalDate journeyDate
+    );
+
+
+    @Query("""
+select s from Schedule  s
+where  s.status = :status
+and(
+s.journeyDate < :today
+or(s.journeyDate = :today and s.departureTime < :now)
+)
+""")
+    List<Schedule> findDueOpenSchedules(
+            @Param("status") ScheduleStatus status,
+            @Param("today") LocalDate today,
+            @Param("now") LocalTime now
     );
 
 
