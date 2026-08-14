@@ -5,6 +5,7 @@ import com.soham.railway_reservation_engine.schedule.entity.Schedule;
 import com.soham.railway_reservation_engine.train.dto.TrainSearchResponse;
 import com.soham.railway_reservation_engine.train.entity.Train;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -59,13 +60,28 @@ select s from Schedule  s
 where  s.status = :status
 and(
 s.journeyDate < :today
-or(s.journeyDate = :today and s.departureTime < :now)
+or(s.journeyDate = :today and s.departureTime <= :now)
 )
 """)
     List<Schedule> findDueOpenSchedules(
             @Param("status") ScheduleStatus status,
             @Param("today") LocalDate today,
             @Param("now") LocalTime now
+    );
+
+
+    @Modifying// this will change the data in the database rather the just  fetching it
+    //only one caller can change open -> chart preparing at a time
+    //if another scheduler tries to do it after that , the updated rows will be 0
+    @Query("""
+update Schedule  s
+set s.status = :preparingStatus
+where s.id = :scheduleId and s.status = :openStatus
+""")
+    int markChartPreparing(
+           @Param("scheduleId") Long scheduleId,
+           @Param("openStatus") ScheduleStatus openStatus,
+           @Param("preparingStatus") ScheduleStatus preparingStatus
     );
 
 

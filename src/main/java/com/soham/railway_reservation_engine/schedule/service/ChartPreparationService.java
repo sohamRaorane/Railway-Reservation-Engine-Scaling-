@@ -30,34 +30,42 @@ public class ChartPreparationService {
     private  final QuotaSeatAllocationRepository    quotaSeatAllocationRepository;
 
 
-
+    /*
+    so now we no longer check open by reading first
+    so we first do an atomic open -> chart preparing update and check the number of rows updated
+    if the update count is 0 another run already prepared or grabbed it
+    if the chart is already prepared second run returns quietly
+    and at last the promotions only happens if this run successfully got the lock
+    to avoid the conflict of  multiple schedulers
+     */
     @Transactional
-    public void prepareChart(Long scheduleId){
+   public void prepareChart(Long scheduleId){
+        int lockedRows = scheduleRepository.markChartPreparing(
+                scheduleId,
+                ScheduleStatus.OPEN,
+                ScheduleStatus.CHART_PREPARING
+        );
+        if(lockedRows == 0 ){
+            Schedule exsistingSchedule = scheduleRepository.findById(scheduleId)
+                    .orElseThrow(() -> new RuntimeException("Schedule not found with id: " + scheduleId));
 
-        //find the schedule
-        Schedule schedule = scheduleRepository.findById(scheduleId)
-                .orElseThrow(() -> new RuntimeException("Schedule not found with  id " + scheduleId));
-
-        //so the railway chart can be only prepared once
-        if(schedule.getStatus() != ScheduleStatus.OPEN){
-            throw new IllegalStateException("Schedule status is not open . current status is " + schedule.getStatus());
-
+            if(exsistingSchedule.getStatus() == ScheduleStatus.CHART_PREPARED){
+                return;
+            }
+            throw  new IllegalStateException("Schedule is not open for chart prepartion. Current status: " + exsistingSchedule.getStatus());
         }
+        Schedule schedule =  scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new RuntimeException("Schedule not found with id: " + scheduleId));
 
-        //freeze the new bookings
-        schedule.setStatus(ScheduleStatus.CLOSED);
-
-        //process every quota
         List<Quota> quotas = quotaRepository.findAll();
         for(Quota quota : quotas){
             processQuota(schedule , quota);
         }
-        //so after processing all the quota now the chart preparation is completed
+
         schedule.setStatus(ScheduleStatus.CHART_PREPARED);
         schedule.setChartPreparedAt(LocalDateTime.now());
-
-        //saving explictly because it shows that we follow a specific pattern
         scheduleRepository.save(schedule);
+
     }
 
     private void processQuota(Schedule schedule, Quota quota) {
