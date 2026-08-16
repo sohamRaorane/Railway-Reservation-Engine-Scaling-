@@ -71,14 +71,22 @@ public class BookingCancellationService {
             }
         }
 
-        //publish the kafka event
-        BookingCancelledEvent event = new BookingCancelledEvent(
-                booking.getId(),
-                booking.getPnr(),
-                booking.getSchedule().getId(),
-                booking.getQuota().getId()
+        // Publish after the DB transaction commits to avoid consumers observing uncommitted/rolled-back state
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        bookingEventProducer.publishBookingCancelled(
+                                new BookingCancelledEvent(
+                                        booking.getId(),
+                                        booking.getPnr(),
+                                        booking.getSchedule().getId(),
+                                        booking.getQuota().getId()
+                                )
+                        );
+                    }
+                }
         );
-        bookingEventProducer.publishBookingCancelled(event);
 
 
         //trigger the promotion logic
