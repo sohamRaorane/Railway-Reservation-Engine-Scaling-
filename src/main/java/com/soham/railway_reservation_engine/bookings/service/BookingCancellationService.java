@@ -2,17 +2,15 @@ package com.soham.railway_reservation_engine.bookings.service;
 
 import com.soham.railway_reservation_engine.bookings.dto.CancellationResponse;
 import com.soham.railway_reservation_engine.bookings.entity.Booking;
+import com.soham.railway_reservation_engine.bookings.event.BookingCancelledEvent;
 import com.soham.railway_reservation_engine.bookings.repository.BookingRepository;
 import com.soham.railway_reservation_engine.cancellation.service.ChargeCalculator;
 import com.soham.railway_reservation_engine.common.enums.BookingStatus;
 import com.soham.railway_reservation_engine.common.enums.PassengerStatus;
+import com.soham.railway_reservation_engine.kafka.producer.BookingEventProducer;
 import com.soham.railway_reservation_engine.passenger.entity.Passenger;
-import com.soham.railway_reservation_engine.passenger.repository.PassengerRepository;
-import com.soham.railway_reservation_engine.payment.repository.PaymentRepository;
 import com.soham.railway_reservation_engine.quotaSeatAllocation.entity.QuotaSeatAllocation;
 import com.soham.railway_reservation_engine.quotaSeatAllocation.repository.QuotaSeatAllocationRepository;
-import com.soham.railway_reservation_engine.seat.repository.SeatRepository;
-import com.soham.railway_reservation_engine.waitlist.service.WaitlistPromotionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +26,8 @@ public class BookingCancellationService {
     private final BookingRepository bookingRepository;
     private final QuotaSeatAllocationRepository quotaSeatAllocationRepository;
     private final ChargeCalculator chargeCalculator;
-    private final WaitlistPromotionService waitlistPromotionService;
+    private final BookingEventProducer bookingEventProducer;
+
 
 
     public CancellationResponse cancelBooking(String pnr){
@@ -53,6 +52,7 @@ public class BookingCancellationService {
 
         //cancel booking
         booking.setBookingStatus(BookingStatus.CANCELLED);
+
         //cancel every passneger
 
         for(Passenger passenger : booking.getPassengers()){
@@ -62,11 +62,27 @@ public class BookingCancellationService {
                 releaseSeat(booking , passenger);
             }
         }
-        //trigger the promotion logic
-        waitlistPromotionService.promotePassenger(
-                booking.getSchedule(),
-                booking.getQuota()
+
+        // Publish after the DB transaction commits to avoid consumers observing uncommitted/rolled-back state
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        bookingEventProducer.publishBookingCancelled(
+                                new BookingCancelledEvent(
+                                        booking.getId(),
+                                        booking.getPnr(),
+                                        booking.getSchedule().getId(),
+                                        booking.getQuota().getId()
+                                )
+                        );
+                    }
+                }
         );
+
+
+        //trigger the promotion logic
+
         return new CancellationResponse(
 
                 booking.getPnr(),
