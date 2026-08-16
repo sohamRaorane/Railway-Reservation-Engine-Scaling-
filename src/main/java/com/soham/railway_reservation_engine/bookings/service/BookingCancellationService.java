@@ -9,12 +9,8 @@ import com.soham.railway_reservation_engine.common.enums.BookingStatus;
 import com.soham.railway_reservation_engine.common.enums.PassengerStatus;
 import com.soham.railway_reservation_engine.kafka.producer.BookingEventProducer;
 import com.soham.railway_reservation_engine.passenger.entity.Passenger;
-import com.soham.railway_reservation_engine.passenger.repository.PassengerRepository;
-import com.soham.railway_reservation_engine.payment.repository.PaymentRepository;
 import com.soham.railway_reservation_engine.quotaSeatAllocation.entity.QuotaSeatAllocation;
 import com.soham.railway_reservation_engine.quotaSeatAllocation.repository.QuotaSeatAllocationRepository;
-import com.soham.railway_reservation_engine.seat.repository.SeatRepository;
-import com.soham.railway_reservation_engine.waitlist.service.WaitlistPromotionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,11 +26,7 @@ public class BookingCancellationService {
     private final BookingRepository bookingRepository;
     private final QuotaSeatAllocationRepository quotaSeatAllocationRepository;
     private final ChargeCalculator chargeCalculator;
-   // private final WaitlistPromotionService waitlistPromotionService;
-    //we have commented this out because we no longer want the cancellation service
-    //to know about how the promotion works
-
-    private final BookingEventProducer  bookingEventProducer;
+    private final BookingEventProducer bookingEventProducer;
 
 
 
