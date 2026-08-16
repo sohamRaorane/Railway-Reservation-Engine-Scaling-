@@ -6,13 +6,11 @@ import com.soham.railway_reservation_engine.quota.repository.QuotaRepository;
 import com.soham.railway_reservation_engine.schedule.entity.Schedule;
 import com.soham.railway_reservation_engine.schedule.repository.ScheduleRepository;
 import com.soham.railway_reservation_engine.waitlist.service.WaitlistPromotionService;
-import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
 @RequiredArgsConstructor
 public class BookingCancelledConsumer {
     private static final org.slf4j.Logger log =
