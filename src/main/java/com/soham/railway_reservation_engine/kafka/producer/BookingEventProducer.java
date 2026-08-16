@@ -1,7 +1,6 @@
 package com.soham.railway_reservation_engine.kafka.producer;
 
 
-import com.soham.railway_reservation_engine.bookings.entity.Booking;
 import com.soham.railway_reservation_engine.bookings.event.BookingCancelledEvent;
 import com.soham.railway_reservation_engine.bookings.event.BookingCreatedEvent;
 import lombok.RequiredArgsConstructor;
