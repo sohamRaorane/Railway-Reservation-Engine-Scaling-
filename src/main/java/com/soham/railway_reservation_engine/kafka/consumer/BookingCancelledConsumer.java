@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class BookingCancelledConsumer {
+    private static final org.slf4j.Logger log =
+            org.slf4j.LoggerFactory.getLogger(BookingCancelledConsumer.class);
+
     private final ScheduleRepository scheduleRepository;
     private final QuotaRepository quotaRepository;
     private final WaitlistPromotionService waitlistPromotionService;
