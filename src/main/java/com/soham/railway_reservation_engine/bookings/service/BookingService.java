@@ -8,12 +8,14 @@ import com.soham.railway_reservation_engine.bookings.dto.BookingResponse;
 import com.soham.railway_reservation_engine.bookings.dto.PassengerRequest;
 import com.soham.railway_reservation_engine.bookings.dto.PassengerResponse;
 import com.soham.railway_reservation_engine.bookings.entity.Booking;
+import com.soham.railway_reservation_engine.bookings.event.BookingCreatedEvent;
 import com.soham.railway_reservation_engine.bookings.repository.BookingRepository;
 import com.soham.railway_reservation_engine.bookings.validator.QuotaEligibilityValidator;
 import com.soham.railway_reservation_engine.coach.entity.Coach;
 import com.soham.railway_reservation_engine.common.enums.BookingStatus;
 import com.soham.railway_reservation_engine.common.enums.PassengerStatus;
 import com.soham.railway_reservation_engine.common.enums.ScheduleStatus;
+import com.soham.railway_reservation_engine.kafka.producer.BookingEventProducer;
 import com.soham.railway_reservation_engine.passenger.entity.Passenger;
 import com.soham.railway_reservation_engine.passenger.repository.PassengerRepository;
 import com.soham.railway_reservation_engine.quota.entity.Quota;
@@ -71,7 +73,7 @@ public class BookingService {
     private final RacRepository racRepository;
     private final QuotaReservationPoolRepository quotaReservationPoolRepository;
     private final SeatHoldService seatHoldService;
-
+    private final BookingEventProducer bookingEventProducer;
     // private final BookingService bookingService;
 
     @Transactional
@@ -259,6 +261,18 @@ public class BookingService {
         //save updated QuotaAllocation
         quotaSeatAllocationRepository.saveAll(updatedAllocations);
         quotaReservationPoolRepository.saveAll(updatedReservationPools);
+
+        //Adding the kafka event producer to publish the booking created event
+        //so above this everything has been saved and persisted in the database
+        //and now we can publish the booking created event
+        bookingEventProducer.publishBookingCreated(
+                new BookingCreatedEvent(
+                        booking.getId(),
+                        booking.getPnr(),
+                        schedule.getId(),
+                        quota.getId()
+                )
+        );
 
         //Build the passenger response
         List<PassengerResponse> passengerResponses = passengers.stream()

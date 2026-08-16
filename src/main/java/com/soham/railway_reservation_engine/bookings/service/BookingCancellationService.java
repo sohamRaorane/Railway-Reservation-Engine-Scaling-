@@ -2,10 +2,12 @@ package com.soham.railway_reservation_engine.bookings.service;
 
 import com.soham.railway_reservation_engine.bookings.dto.CancellationResponse;
 import com.soham.railway_reservation_engine.bookings.entity.Booking;
+import com.soham.railway_reservation_engine.bookings.event.BookingCancelledEvent;
 import com.soham.railway_reservation_engine.bookings.repository.BookingRepository;
 import com.soham.railway_reservation_engine.cancellation.service.ChargeCalculator;
 import com.soham.railway_reservation_engine.common.enums.BookingStatus;
 import com.soham.railway_reservation_engine.common.enums.PassengerStatus;
+import com.soham.railway_reservation_engine.kafka.producer.BookingEventProducer;
 import com.soham.railway_reservation_engine.passenger.entity.Passenger;
 import com.soham.railway_reservation_engine.passenger.repository.PassengerRepository;
 import com.soham.railway_reservation_engine.payment.repository.PaymentRepository;
@@ -28,7 +30,12 @@ public class BookingCancellationService {
     private final BookingRepository bookingRepository;
     private final QuotaSeatAllocationRepository quotaSeatAllocationRepository;
     private final ChargeCalculator chargeCalculator;
-    private final WaitlistPromotionService waitlistPromotionService;
+   // private final WaitlistPromotionService waitlistPromotionService;
+    //we have commented this out because we no longer want the cancellation service
+    //to know about how the promotion works
+
+    private final BookingEventProducer  bookingEventProducer;
+
 
 
     public CancellationResponse cancelBooking(String pnr){
@@ -53,6 +60,7 @@ public class BookingCancellationService {
 
         //cancel booking
         booking.setBookingStatus(BookingStatus.CANCELLED);
+
         //cancel every passneger
 
         for(Passenger passenger : booking.getPassengers()){
@@ -62,11 +70,19 @@ public class BookingCancellationService {
                 releaseSeat(booking , passenger);
             }
         }
-        //trigger the promotion logic
-        waitlistPromotionService.promotePassenger(
-                booking.getSchedule(),
-                booking.getQuota()
+
+        //publish the kafka event
+        BookingCancelledEvent event = new BookingCancelledEvent(
+                booking.getId(),
+                booking.getPnr(),
+                booking.getSchedule().getId(),
+                booking.getQuota().getId()
         );
+        bookingEventProducer.publishBookingCancelled(event);
+
+
+        //trigger the promotion logic
+
         return new CancellationResponse(
 
                 booking.getPnr(),
