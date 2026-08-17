@@ -9,12 +9,8 @@ import com.soham.railway_reservation_engine.common.enums.BookingStatus;
 import com.soham.railway_reservation_engine.common.enums.PassengerStatus;
 import com.soham.railway_reservation_engine.kafka.producer.BookingEventProducer;
 import com.soham.railway_reservation_engine.passenger.entity.Passenger;
-import com.soham.railway_reservation_engine.passenger.repository.PassengerRepository;
-import com.soham.railway_reservation_engine.payment.repository.PaymentRepository;
 import com.soham.railway_reservation_engine.quotaSeatAllocation.entity.QuotaSeatAllocation;
 import com.soham.railway_reservation_engine.quotaSeatAllocation.repository.QuotaSeatAllocationRepository;
-import com.soham.railway_reservation_engine.seat.repository.SeatRepository;
-import com.soham.railway_reservation_engine.waitlist.service.WaitlistPromotionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -87,14 +83,22 @@ public class BookingCancellationService {
         );
 
 
-        //publish the kafka event
-        BookingCancelledEvent event = new BookingCancelledEvent(
-                booking.getId(),
-                booking.getPnr(),
-                booking.getSchedule().getId(),
-                booking.getQuota().getId()
+        // Publish after the DB transaction commits to avoid consumers observing uncommitted/rolled-back state
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        bookingEventProducer.publishBookingCancelled(
+                                new BookingCancelledEvent(
+                                        booking.getId(),
+                                        booking.getPnr(),
+                                        booking.getSchedule().getId(),
+                                        booking.getQuota().getId()
+                                )
+                        );
+                    }
+                }
         );
-        bookingEventProducer.publishBookingCancelled(event);
 
 
         //trigger the promotion logic

@@ -271,16 +271,21 @@ public class BookingService {
         quotaSeatAllocationRepository.saveAll(updatedAllocations);
         quotaReservationPoolRepository.saveAll(updatedReservationPools);
 
-        //Adding the kafka event producer to publish the booking created event
-        //so above this everything has been saved and persisted in the database
-        //and now we can publish the booking created event
-        bookingEventProducer.publishBookingCreated(
-                new BookingCreatedEvent(
-                        booking.getId(),
-                        booking.getPnr(),
-                        schedule.getId(),
-                        quota.getId()
-                )
+        // Publish after the DB transaction commits to avoid consumers observing uncommitted/rolled-back state
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        bookingEventProducer.publishBookingCreated(
+                                new BookingCreatedEvent(
+                                        booking.getId(),
+                                        booking.getPnr(),
+                                        schedule.getId(),
+                                        quota.getId()
+                                )
+                        );
+                    }
+                }
         );
 
         //Build the passenger response
