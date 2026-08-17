@@ -40,6 +40,8 @@ import com.soham.railway_reservation_engine.waitlist.repository.WaitlistReposito
 import com.soham.railway_reservation_engine.waitlist.service.WaitlistService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -74,6 +76,8 @@ public class BookingService {
     private final QuotaReservationPoolRepository quotaReservationPoolRepository;
     private final SeatHoldService seatHoldService;
     private final BookingEventProducer bookingEventProducer;
+    private static final Logger log = LoggerFactory.getLogger(BookingService.class);
+
     // private final BookingService bookingService;
 
     @Transactional
@@ -122,9 +126,11 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException("Quota not found with code: " + bookingRequest.quotaCode()));
 
         //so now you have all the details --> lets start creating a booking obj
-        System.out.println("========== COACH TYPE DEBUG ==========");
-        System.out.println("Requested Coach Type = " + bookingRequest.coachType());
-        System.out.println("======================================");
+
+        log.info(
+                "Coach Type is : coachType ={}",
+                bookingRequest.coachType()
+        );
         //Booking object
         Booking booking = Booking.builder()
                 .pnr(generatePnr())
@@ -138,11 +144,12 @@ public class BookingService {
                 .build();
         //Save booking
         Booking savedBooking = bookingRepository.save(booking);
-        System.out.println("========== SAVED BOOKING DEBUG ==========");
-        System.out.println("Booking ID = " + savedBooking.getId());
-        System.out.println("PNR = " + savedBooking.getPnr());
-        System.out.println("Saved Coach Type = " + savedBooking.getCoachType());
-        System.out.println("==========================================");
+        log.info(
+          "Booking created: bookingId ={} , pnr ={} , coachType ={}",
+                savedBooking.getId(),
+                savedBooking.getPnr(),
+                savedBooking.getCoachType()
+        );
         //here only booking object is created and it is not saved yet
         // still for a booking we need to create the passengers and allocate them the
         //seats
@@ -199,13 +206,15 @@ public class BookingService {
                         allocatedSeat.getId(),
                         savedBooking.getId()
                 );
-                System.out.println("=================================");
-                System.out.println("SEAT HOLD EXECUTED");
-                System.out.println("Schedule ID = " + schedule.getId());
-                System.out.println("Seat ID     = " + allocatedSeat.getId());
-                System.out.println("Booking ID  = " + savedBooking.getId());
-                System.out.println("Seat Held   = " + seatHeld);
-                System.out.println("=================================");
+
+                log.info(
+                        "Seat Hold is executed : scheduleId ={} , allocatedSeat={} , savedBooking={} , seatHeld={}",
+                        schedule.getId(),
+                        allocatedSeat.getId(),
+                        savedBooking.getId(),
+                        seatHeld
+
+                );
                 if(!seatHeld) {
                     throw new RuntimeException("Failed to hold seat since the seat was held by another booking : " + allocatedSeat.getId());
                 }

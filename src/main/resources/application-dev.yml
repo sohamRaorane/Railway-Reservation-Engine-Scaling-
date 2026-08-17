@@ -66,3 +66,7 @@ razorpay:
   key-id: rzp_test_TNDBuagy1cIOMx
   key-secret: zCy0IQE7iwmt0CYg9d0kRK9w
   webhook-secret: 7S@ZvPxe8sU3dvi
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [correlationId=%X{correlationId}] [%thread] %logger{36} - %msg%n"
