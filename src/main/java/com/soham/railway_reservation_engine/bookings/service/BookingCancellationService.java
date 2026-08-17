@@ -13,6 +13,8 @@ import com.soham.railway_reservation_engine.quotaSeatAllocation.entity.QuotaSeat
 import com.soham.railway_reservation_engine.quotaSeatAllocation.repository.QuotaSeatAllocationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -26,13 +28,25 @@ public class BookingCancellationService {
     private final BookingRepository bookingRepository;
     private final QuotaSeatAllocationRepository quotaSeatAllocationRepository;
     private final ChargeCalculator chargeCalculator;
-    private final BookingEventProducer bookingEventProducer;
+    private static final Logger log = LoggerFactory.getLogger(BookingCancellationService.class);
+   // private final WaitlistPromotionService waitlistPromotionService;
+    //we have commented this out because we no longer want the cancellation service
+    //to know about how the promotion works
+
+    private final BookingEventProducer  bookingEventProducer;
 
 
 
     public CancellationResponse cancelBooking(String pnr){
         //Find booking
         Booking booking = bookingRepository.findByPnr(pnr).orElseThrow(() ->new RuntimeException("Booking not found for PNR: " + pnr));
+
+        log.info(
+                "Starting booking cancellation: bookingId= {}  , pnr ={}",
+                booking.getId(),
+                booking.getPnr()
+        );
+
 
         //Calculate the refund
         LocalDateTime departureDateTime =
@@ -62,6 +76,12 @@ public class BookingCancellationService {
                 releaseSeat(booking , passenger);
             }
         }
+        log.info(
+                "Booking cancellation committed , publishing Kafka event: bookingId= {} , pnr ={}",
+                booking.getId(),
+                booking.getPnr()
+        );
+
 
         // Publish after the DB transaction commits to avoid consumers observing uncommitted/rolled-back state
         org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
