@@ -15,6 +15,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -93,7 +94,8 @@ public class BookingCancellationService {
                                         booking.getId(),
                                         booking.getPnr(),
                                         booking.getSchedule().getId(),
-                                        booking.getQuota().getId()
+                                        booking.getQuota().getId(),
+                                        MDC.get("correlationId")
                                 )
                         );
                     }

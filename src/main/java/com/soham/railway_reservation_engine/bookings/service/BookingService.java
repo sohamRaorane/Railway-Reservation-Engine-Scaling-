@@ -42,7 +42,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -271,8 +273,11 @@ public class BookingService {
         quotaSeatAllocationRepository.saveAll(updatedAllocations);
         quotaReservationPoolRepository.saveAll(updatedReservationPools);
 
+
+
         // Publish after the DB transaction commits to avoid consumers observing uncommitted/rolled-back state
-        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+        String correlationId = MDC.get("correlationId");
+        TransactionSynchronizationManager.registerSynchronization(
                 new org.springframework.transaction.support.TransactionSynchronization() {
                     @Override
                     public void afterCommit() {
@@ -281,7 +286,8 @@ public class BookingService {
                                         booking.getId(),
                                         booking.getPnr(),
                                         schedule.getId(),
-                                        quota.getId()
+                                        quota.getId(),
+                                        MDC.get("correlationId")
                                 )
                         );
                     }

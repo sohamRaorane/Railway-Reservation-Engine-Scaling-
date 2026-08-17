@@ -6,7 +6,8 @@ public record BookingCreatedEvent(
         Long bookingId,
         String pnr,
         Long scheduleId,
-        Long quotaId
+        Long quotaId,
+        String correlationId
 ) {
 }
 
