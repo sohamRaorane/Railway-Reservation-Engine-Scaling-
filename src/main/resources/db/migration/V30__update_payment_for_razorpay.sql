@@ -1,6 +1,8 @@
+ALTER TABLE payments
+    ADD COLUMN razorpay_order_id VARCHAR(255);
 
-
-
+ALTER TABLE payments
+    ADD COLUMN razorpay_payment_id VARCHAR(255);
 
 ALTER TABLE payments
     ADD CONSTRAINT uk_payment_razorpay_order

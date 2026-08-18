@@ -19,6 +19,7 @@ public class QuotaEligibilityValidatorTest {
     void setUp() {
         validator = new QuotaEligibilityValidator();
     }
+
     //Do not allow the young males under the senior citizens quota
     @Test
     void shouldThrowExceptionForYoungMaleSeniorCitizen() {
@@ -43,6 +44,7 @@ public class QuotaEligibilityValidatorTest {
                 exception.getMessage()
         );
     }
+
     //Allow the senior citizens in the senior citizens quota
     @Test
     void shouldAllowSeniorMalePassenger() {
@@ -60,6 +62,7 @@ public class QuotaEligibilityValidatorTest {
                 () -> validator.validate(passenger, user, quota)
         );
     }
+
     //Should allow the females for the female quota
     @Test
     void shouldAllowFemaleForLadiesQuota() {
@@ -77,6 +80,7 @@ public class QuotaEligibilityValidatorTest {
                 () -> validator.validate(passenger, user, quota)
         );
     }
+
     @Test
     void shouldRejectMaleForLadiesQuota() {
         PassengerRequest passenger = new PassengerRequest(
@@ -98,6 +102,7 @@ public class QuotaEligibilityValidatorTest {
                 exception.getMessage()
         );
     }
+
     @Test
     void shouldAllowDefenceUser() {
         PassengerRequest passenger = new PassengerRequest(
@@ -115,6 +120,7 @@ public class QuotaEligibilityValidatorTest {
                 () -> validator.validate(passenger, user, quota)
         );
     }
+
     @Test
     void shouldRejectNonDefenceUser() {
         PassengerRequest passenger = new PassengerRequest(
@@ -137,6 +143,7 @@ public class QuotaEligibilityValidatorTest {
                 exception.getMessage()
         );
     }
+
     @Test
     void shouldAllowGeneralQuotaForEveryone() {
 
@@ -170,6 +177,44 @@ public class QuotaEligibilityValidatorTest {
         assertDoesNotThrow(
                 () -> validator.validate(passenger, user, quota)
         );
+    }
+
+    // assert does not throw --> that a particular block of code
+    //executes successfully without throwing any kind of exception
+    @Test
+    void shouldAllowSeniorFemalePassenger() {
+        PassengerRequest passenger = new PassengerRequest(
+                "Priya",
+                60,
+                Gender.FEMALE,
+                BerthPreference.LOWER
+        );
+
+        User user = new User();
+        Quota quota = Quota.builder().code("SS").build();
+        assertDoesNotThrow(() -> validator.validate(passenger, user, quota));
+    }
+
+    @Test
+    void shouldRejectInvalidQuotaCode(){
+        PassengerRequest passenger = new PassengerRequest(
+                "Rahul",
+                22,
+                Gender.MALE,
+                BerthPreference.LOWER
+        );
+
+        User user = new User();
+        Quota quota = Quota.builder().code("INVALID").build();
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> validator.validate(passenger, user, quota));
+
+        assertEquals(
+                "Invalid quota code : INVALID",
+                exception.getMessage()
+        );
+
+
     }
 
 }
