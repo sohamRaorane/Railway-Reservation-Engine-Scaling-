@@ -14,10 +14,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        default_schema: public
 
   flyway:
     enabled: true
     locations: classpath:db/migration
+    schema: public
+    default-schema: public
 
   data:
     redis:
