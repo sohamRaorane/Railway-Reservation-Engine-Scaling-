@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Day22ConcurrencyTest {
     private static final int TOTAL_REQUESTS = 100;
     private static final String BASE_URL = "http://localhost:8080";
-    private static final String JWT_TOKEN ="eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiVVNFUiIsInVzZXJJZCI6MSwic3ViIjoicmFodWwuc2hhcm1hQGV4YW1wbGUuY29tIiwiaWF0IjoxNzg2NDY2ODc1LCJleHAiOjE3ODY1NTMyNzV9.8kOFEdqUckjNGa_2AoiDzpvUX5pZodAXXsnnT3WFxNGE2u48AKWqsnROPe9cNWtm";
+    private static final String JWT_TOKEN ="YOUR JWT KEY";
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
