@@ -7,6 +7,9 @@ import org.springframework.data.repository.Repository;
 
 import java.util.Optional;
 
+/**
+ * Data access for stations; {@code findByCode} resolves the station from its short code.
+ */
 public interface StationRepository extends JpaRepository<Station, Long > {
     Optional<Station> findByCode(String code);
 }

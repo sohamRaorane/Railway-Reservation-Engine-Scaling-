@@ -8,6 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+/**
+ * A railway station referenced by train routes.
+ *
+ * <p>{@code code} is the canonical 3-letter station code used in search queries (e.g. {@code NDLS},
+ * {@code BCT}); the unique constraint keeps lookups by code unambiguous. Static reference data —
+ * a station exists independently of any train.
+ */
 @Entity
 @Table(
         name = "stations"
