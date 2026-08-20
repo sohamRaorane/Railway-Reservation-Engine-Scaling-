@@ -15,9 +15,6 @@ public class RailwayReservationEngineApplication {
 	public static void main(String[] args) {
 		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Kolkata"));
 
-		System.out.println("ZoneId = " + java.time.ZoneId.systemDefault());
-		System.out.println("user.timezone = " + System.getProperty("user.timezone"));
-
 		SpringApplication.run(RailwayReservationEngineApplication.class, args);
 
 	}
