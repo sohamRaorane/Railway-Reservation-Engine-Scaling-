@@ -9,6 +9,14 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A physical berth in a coach: identified by (coach, seatNumber) with a fixed {@code BerthType}.
+ *
+ * <p>Static inventory — the seat's <i>occupancy</i> for a given train-date is not stored here;
+ * it's derived from passenger/booking state and the Redis hold, keeping this entity immutable
+ * metadata. The berth type (LOWER, SIDE_LOWER, ...) is what RAC sharing and the berth-preference
+ * logic reason about.
+ */
 @Entity
 @Table(name = "seats")
 @Getter
