@@ -9,6 +9,14 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+/**
+ * Data access for passengers.
+ *
+ * <p>{@code findBookedSeatIdsByScheduleId} answers "which physical seats are already occupied on
+ * this train-date?" via a single JPQL projection (only the seat ids — no full entities), used by
+ * {@code FirstAvailableSeatStrategy} to decide which seats to skip. Fetching only the ids keeps
+ * the query light compared to loading entire {@code Passenger}/{@code Seat} entities.
+ */
 public interface PassengerRepository extends JpaRepository<Passenger, Long> {
     List<Passenger> findByBooking(Booking booking);
 

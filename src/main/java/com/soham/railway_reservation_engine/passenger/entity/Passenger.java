@@ -12,6 +12,18 @@ import jakarta.persistence.*;
 import lombok.*;
 
 
+/**
+ * One traveller within a booking — the unit of seat allocation.
+ *
+ * <p><b>Key modelling decision:</b> a booking has many passengers, and each passenger carries its
+ * own {@code passengerStatus} (CONFIRMED / RAC / WAITLISTED / CANCELLED). This lets a single PNR
+ * hold a mix of states (e.g. two confirmed, one waitlisted), mirroring real Indian Railways.
+ *
+ * <p><b>Lazy loading:</b> {@code booking} and {@code seat} are {@code FetchType.LAZY} — loaded only
+ * when accessed, avoiding the N+1 cartesian blowup of eagerly fetching whole object graphs.
+ * {@code seat} is null until a passenger is allocated one (nullability itself encodes state).
+ * {@code berthPreference} is what the user asked for; the allocated berth lives on {@code Seat}.
+ */
 @Entity
 @Table(name = "passengers")
 @Getter
