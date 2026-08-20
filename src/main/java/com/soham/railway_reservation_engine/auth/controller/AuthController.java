@@ -17,11 +17,12 @@ import com.soham.railway_reservation_engine.auth.dto.RefreshRequest;
 import com.soham.railway_reservation_engine.auth.dto.RefreshResponse;
 
 /*
-Functions of the  controller
-Receive HTTP requests
-Convert JSON into Java Objects (DTOs)
-Call the Service
-Return the Service's response
+ * REST endpoints for authentication.
+ *
+ * Responsibilities of a controller: receive HTTP requests, convert JSON to DTOs,
+ * delegate to the service layer, and return the service's response.
+ * These endpoints are whitelisted in SecurityConfig (permitAll), so no JWT is
+ * required to reach them.
  */
 @RestController
 @RequestMapping("/api/v1/auth")

@@ -25,7 +25,29 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-//Register a new user and login an existing user --> two responsibilities
+/**
+ * Handles registration, login, token refresh and logout for users.
+ *
+ * <p><b>Terminology:</b>
+ * <ul>
+ *   <li><b>BCrypt</b> — a salted, deliberately slow one-way hash used to store
+ *       passwords, so the raw password is never persisted and brute-forcing is expensive.</li>
+ *   <li><b>AuthenticationManager</b> — Spring Security's orchestrator. It delegates to
+ *       {@code CustomUserDetailsService} to load the user and to the {@code PasswordEncoder}
+ *       (BCrypt) to verify credentials.</li>
+ *   <li><b>JWT (JSON Web Token)</b> — a stateless, signed token. The server signs a payload
+ *       (userId, role, expiry) so it needs no session storage; any server can verify the signature.</li>
+ *   <li><b>Refresh token</b> — a long-lived, revocable credential stored in the DB. When the
+ *       short-lived access token expires, the client exchanges the refresh token for a new
+ *       access token without re-entering credentials. Revoking it on logout kills the session.</li>
+ * </ul>
+ *
+ * <p><b>Flow:</b> {@code register} hashes the password with BCrypt and persists the user →
+ * {@code login} authenticates via {@code AuthenticationManager}, builds a {@code UserDetails}
+ * with {@code ROLE_<role>} authority, mints an access JWT carrying custom claims (userId, role),
+ * and issues a DB-backed refresh token → {@code refresh} validates the refresh token and mints a
+ * fresh access token → {@code logout} revokes the refresh token.
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
