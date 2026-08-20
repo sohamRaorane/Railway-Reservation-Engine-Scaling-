@@ -6,6 +6,13 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
+/**
+ * Availability summary for one train-date-quota combination, served from the Redis cache.
+ *
+ * <p>Counts are {@code Long} because they aggregate via SQL {@code SUM} over multiple coach
+ * allocations; the JSON this serializes to is what the frontend renders in the seat-availability
+ * UI.
+ */
 @Getter
 @AllArgsConstructor
 

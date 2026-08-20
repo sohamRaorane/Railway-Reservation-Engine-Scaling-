@@ -10,6 +10,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Data access for the waitlist queue.
+ *
+ * <p><b>Why {@code Top}/{@code First} queries?</b> Without a limit, a find on schedule+quota
+ * would return many rows and Spring Data would throw {@code IncorrectResultSizeDataAccessException}
+ * for a single-return method. Prefixing with {@code Top}/{@code First} (paired with
+ * {@code OrderBy}) tells the database to stop after the best match — the queue head — instead of
+ * loading thousands of rows into memory and sorting in Java.
+ */
 public interface WaitlistRepository extends JpaRepository<Waitlist, Long> {
 
     Optional<Waitlist> findByPassenger(Passenger passenger);

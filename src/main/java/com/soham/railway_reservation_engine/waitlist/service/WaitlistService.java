@@ -13,6 +13,19 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * Enqueues a passenger on the waitlist when confirmed and RAC capacity are exhausted.
+ *
+ * <p><b>Flow:</b> the transaction first takes a <i>pessimistic lock</i> on the quota pool
+ * ({@code findForUpdate}) — this serialises waitlist insertion against promotions and other
+ * bookings for the same train-date+quota — then derives the next number (current max + 1,
+ * starting at 1) and inserts the entry. The whole thing is one {@code @Transactional} unit:
+ * any failure rolls everything back, and the pool lock is released at commit.
+ *
+ * <p>The commented-out blocks show an earlier draft (returning an unsaved builder object without
+ * persisting it) and the transient-vs-persistent distinction — a reminder that mutating an entity
+ * before {@code save()} changes nothing in the database.
+ */
 @Service
 @RequiredArgsConstructor
 public class WaitlistService {

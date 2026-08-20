@@ -13,6 +13,15 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.Optional;
 
+/**
+ * Data access for per-coach quota availability.
+ *
+ * <p>{@code findByScheduleAndCoachAndQuota} locates the counter the seat strategy decrements when
+ * confirming a passenger; {@code getTotalAvailableSeats} aggregates availability across all coaches
+ * of a train-date for the availability response (COALESCE keeps the sum at 0 instead of null when
+ * no rows exist). The commented-out block shows an earlier design that returned a DTO directly
+ * from the query — replaced by the leaner aggregate below.
+ */
 public interface QuotaSeatAllocationRepository
         extends JpaRepository<QuotaSeatAllocation, Long> {
 

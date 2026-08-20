@@ -11,6 +11,18 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Payment record for a booking — one-to-one, created at payment initiation.
+ *
+ * <p>Stores both the Razorpay <i>order</i> id (created by us) and the <i>payment</i> id
+ * (assigned by Razorpay after capture), plus the status transition PENDING → SUCCESS/FAILED
+ * that drives the booking to CONFIRMED or CANCELLED. The webhook handler looks the row up by
+ * {@code razorpayOrderId} (the value our server knows), then records {@code razorpayPaymentId}.
+ *
+ * <p>Money is stored as {@code BigDecimal} (with scale 2) — never {@code double}, which would
+ * introduce binary floating-point rounding errors in financial data. The unique constraints on
+ * the Razorpay ids act as an extra DB-level idempotency guard against duplicate webhook calls.
+ */
 @Entity
 @Table(name = "payments")
 @Getter

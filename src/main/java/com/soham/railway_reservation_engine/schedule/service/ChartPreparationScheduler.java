@@ -13,6 +13,15 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+/**
+ * Periodic job that finalises charts for journeys whose departure has arrived.
+ *
+ * <p>{@code @Scheduled(fixedDelay = 60000)} runs this every 60 seconds on the application's
+ * scheduler thread pool. It finds schedules that are still OPEN but whose journey date is
+ * past (or today with departure time elapsed) and hands each to {@code ChartPreparationService}.
+ * Per-schedule try/catch keeps one failing schedule from blocking the rest of the batch —
+ * important because a scheduler crash mid-loop must not stall every chart.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

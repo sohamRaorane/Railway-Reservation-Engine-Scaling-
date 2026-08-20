@@ -23,6 +23,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+/**
+ * Central aggregate root of the reservation domain. One row per ticket purchase.
+ *
+ * <p><b>Terminology:</b>
+ * <ul>
+ *   <li><b>PNR</b> — Passenger Name Record; the unique 10-character reference a customer uses to
+ *       look up and cancel their booking.</li>
+ *   <li><b>Quota</b> — a seat-pool partition (General, Ladies, Senior Citizen, Defence, Tatkal).</li>
+ *   <li><b>Status</b> — lifecycle state: PENDING_PAYMENT → CONFIRMED / RAC / WAITLIST → CANCELLED,
+ *       enforced by {@code PnrStateMachine}.</li>
+ *   <li><b>Idempotency key</b> — client-supplied unique value; if the same key is re-sent, the
+ *       existing booking is returned instead of creating a duplicate.</li>
+ * </ul>
+ *
+ * <p>The booking is linked one-to-many to {@link Passenger} (its seats/statuses), one-to-one to
+ * {@link com.soham.railway_reservation_engine.payment.entity.Payment}, and one-to-many to
+ * {@link com.soham.railway_reservation_engine.pnrStateHistory.entity.PnrStateHistory} (audit trail).
+ */
 @Entity
 @Table( name= "bookings" )
 @Getter

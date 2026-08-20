@@ -29,18 +29,37 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 
-//Responsibilty is to create a payment order and process the payment result
+/**
+ * Orchestrates payment lifecycle: order creation (initiation) and post-payment outcome
+ * processing (webhook).
+ *
+ * <p><b>Initiation flow:</b>
+ * <ol>
+ *   <li>Load booking by PNR; must be PENDING_PAYMENT (else 400).</li>
+ *   <li>Guard against duplicate initiation — if a payment row already exists for the booking → 409.
+ *       This is the same idempotency idea as the booking's {@code Idempotency-Key}.</li>
+ *   <li>Convert fare to the smallest currency unit (paise) — payments APIs never accept floats,
+ *       to avoid rounding drift.</li>
+ *   <li>Create a Razorpay order (server-side), persist a PENDING payment, return order id + public
+ *       key id to the client so the frontend can render the payment page.</li>
+ * </ol>
+ *
+ * <p><b>Webhook flow (server-to-server, called by Razorpay):</b>
+ * <ol>
+ *   <li>Verify the {@code X-Razorpay-Signature} against the shared secret — the ONLY trust anchor;
+ *       never trust a client-supplied "payment success".</li>
+ *   <li>{@code payment.captured} → mark payment SUCCESS, booking CONFIRMED, and release the
+ *       temporary Redis seat-holds (the hold existed to reserve the seat only until payment).</li>
+ *   <li>{@code payment.failed} → mark payment FAILED and delegate to {@code PaymentFailureService}
+ *       to return seats/quotas and trigger promotion.</li>
+ *   <li>Webhooks can be delivered more than once, so the handler is idempotent: if the payment is
+ *       already in a terminal state it returns early without double-processing.</li>
+ * </ol>
+ */
 @Service
 @RequiredArgsConstructor
 
 public class PaymentService {
-    /*
-    So a general flow would be
-    Find booking
-    validate booking
-    create razorpay order
-    build the payment entity save payment and then as usual return the dto
-`*/
 
 
     private final PaymentFailureService paymentFailureService;
@@ -106,14 +125,6 @@ public class PaymentService {
         );
 
     }
-    /*
-    Verify the razorpay signature
-    find the payment
-    update payment status
-    update the booking status
-    trigger cancellation flow if payment failed
-*/
-
     @Transactional
     public void handleWebhook(
             String payload,

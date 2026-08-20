@@ -13,6 +13,23 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDate;
 
+/**
+ * Answers "how many seats are left on train X on date Y under quota Z?" using the
+ * <b>cache-aside pattern</b>.
+ *
+ * <p><b>Flow:</b>
+ * <ol>
+ *   <li>Build the cache key ({@code availability:<trainId>:<date>:<quota>}) and check Redis.</li>
+ *   <li>On a hit → return immediately (avoids two DB queries per request).</li>
+ *   <li>On a miss → aggregate confirmed-seat availability from {@code QuotaSeatAllocation} and
+ *       RAC/waitlist counters from {@code QuotaReservationPool}, then write the result to Redis
+ *       with a 5-minute TTL so subsequent callers hit the cache.</li>
+ * </ol>
+ *
+ * <p>This is the classic <i>read-through/cache-aside</i> trade: the 5-minute TTL means availability
+ * can be up to 5 minutes stale — an acceptable price for shaving query load, since the DB is
+ * always the source of truth at booking time.
+ */
 @Service
 @RequiredArgsConstructor
 public class TrainAvailabilityService {

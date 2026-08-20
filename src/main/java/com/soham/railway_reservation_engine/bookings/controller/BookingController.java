@@ -15,6 +15,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * HTTP layer for booking operations.
+ *
+ * <p><b>Authentication:</b> the current user is injected via {@code @AuthenticationPrincipal}
+ * as a {@link com.soham.railway_reservation_engine.security.service.CustomUserDetails} — set by
+ * the JWT filter — so the service receives the caller's userId instead of trusting client input.
+ *
+ * <p><b>Idempotency:</b> creating a booking requires an {@code Idempotency-Key} header; re-sending
+ * the same key returns the same booking rather than a duplicate.
+ *
+ * <p>Endpoints: {@code POST /api/v1/bookings}, {@code GET /api/v1/bookings/{pnr}},
+ * {@code POST /api/v1/bookings/{pnr}/cancel}.
+ */
 @RestController
 @RequestMapping("api/v1/bookings")
 @RequiredArgsConstructor

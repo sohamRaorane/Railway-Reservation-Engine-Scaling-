@@ -11,10 +11,21 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.util.UUID;
 
-/*
-so every http request gets oyu a correlation id
-if the correlation id is not present then set it using the random uuid
-otherwise use the header which is given by the application
+/**
+ * Assigns a correlation id to every HTTP request and carries it across the request's logs.
+ *
+ * <p><b>Distributed-tracing concept:</b> in a system with Kafka consumers, webhooks and async
+ * flows, a single user action touches many components. Each request gets a unique id
+ * ({@code UUID}) unless an upstream caller already supplied one (header {@code correlationId})
+ * — in that case it is propagated unchanged so the whole chain shares one id.
+ *
+ * <p><b>Advanced logging concept — MDC (Mapped Diagnostic Context):</b> values put in the MDC are
+ * per-thread (thread-local storage, invisible to other threads) and can be injected into every
+ * log line via the log pattern ({@code %X{correlationId}}). The finally block removes the key so
+ * pooled servlet threads don't leak the id into the next request — a classic thread-pool pitfall.
+ *
+ * <p>Because it extends {@code OncePerRequestFilter}, it also guarantees execution exactly once
+ * per request even if the filter is mapped multiple times.
  */
 @Component
 public class CorrelationIdFilter extends OncePerRequestFilter {

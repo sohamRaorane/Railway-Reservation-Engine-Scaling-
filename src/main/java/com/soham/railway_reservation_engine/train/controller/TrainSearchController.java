@@ -13,6 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * HTTP layer for train search: {@code GET /api/v1/trains/search?source=..&destination=..&date=..}.
+ *
+ * <p>{@code @DateTimeFormat(ISO.DATE)} tells Spring how to parse the {@code date} query parameter
+ * (yyyy-MM-dd) into a {@code LocalDate} — without it Spring's default string binding would fail
+ * or misinterpret the format.
+ */
 @RestController
 @RequestMapping("/api/v1/trains")
 @RequiredArgsConstructor

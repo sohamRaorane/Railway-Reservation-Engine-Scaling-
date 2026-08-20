@@ -6,6 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
+/**
+ * Data access for the booking status audit trail, ordered oldest→newest so callers can replay
+ * a PNR's history chronologically.
+ */
 public interface PnrStateHistoryRepository
         extends JpaRepository<PnrStateHistory, Long> {
 

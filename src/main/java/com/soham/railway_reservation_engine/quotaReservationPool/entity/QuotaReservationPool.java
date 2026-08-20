@@ -10,6 +10,21 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 
+/**
+ * Per train-date + quota counters for RAC and waitlist capacity — the row that serialises
+ * fallback-seat allocation.
+ *
+ * <p><b>Why a separate pool instead of counters on Quota?</b> A quota's capacity is NOT static:
+ * it varies per journey (date + train). This row is uniquely keyed by (schedule, quota) so each
+ * train-date/quota combination has exactly one place where {@code racAvailable} and
+ * {@code waitlistAvailable} are counted down/up.
+ *
+ * <p><b>Concurrency:</b> these counters are the classic <i>read-modify-write</i> hot spot. Every
+ * concurrent booking would race on them, so callers always acquire a pessimistic row lock via
+ * {@code QuotaReservationPoolRepository.findForUpdate} before touching the counters.
+ * {@code racLimit}/{@code waitlistLimit} are the configured ceilings; available starts at the
+ * limit and drains toward zero.
+ */
 @Entity
 @Table(
         name = "quota_reservation_pool",

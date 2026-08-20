@@ -19,6 +19,26 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Finalises a journey's reservation chart: promotes every waiting passenger into freed capacity.
+ *
+ * <p><b>Terminology — "chart":</b> the final seat-assignment list that decides who actually
+ * boards. Before the chart, statuses are provisional; chart preparation locks them in.
+ *
+ * <p><b>Concurrency design (single-winner):</b> instead of read-then-check, preparation first runs
+ * the atomic OPEN → CHART_PREPARING update and inspects the affected-row count. If 0, another
+ * scheduler instance already claimed this schedule (or it is already CHART_PREPARED — in which
+ * case we return quietly). Only the winner proceeds to promotions, so multiple scheduler replicas
+ * can never double-process a schedule.
+ *
+ * <p><b>Promotion order per quota:</b>
+ * <ol>
+ *   <li>RAC → CONFIRMED first (senior RAC numbers first), while confirmed seats remain.</li>
+ *   <li>Then WAITLIST → CONFIRMED, also capacity-gated.</li>
+ * </ol>
+ * Each promotion is done via {@code WaitlistPromotionService}; availability is recomputed per
+ * iteration so the loop stops exactly when the seats run out.
+ */
 @Service
 @RequiredArgsConstructor
 public class ChartPreparationService {

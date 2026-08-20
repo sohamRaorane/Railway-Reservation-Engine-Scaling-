@@ -22,6 +22,24 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * Rolls back a booking's resource allocations when its payment fails.
+ *
+ * <p>Called from the {@code payment.failed} webhook handler, inside the same transaction. For
+ * each passenger it reverses exactly what the booking flow granted:
+ * <ul>
+ *   <li><b>CONFIRMED</b> — the physical seat is detached, its quota allocation's
+ *       {@code availableSeats} is incremented back.</li>
+ *   <li><b>RAC</b> — the RAC entry is deleted and the pool's {@code racAvailable} restored.</li>
+ *   <li><b>WAITLISTED</b> — the waitlist row is deleted and {@code waitlistAvailable} restored.</li>
+ * </ul>
+ *
+ * <p>Freed capacity is immediately recycled: each freed RAC slot triggers one
+ * waitlist→RAC promotion, and each freed confirmed seat triggers one waitlist/RAC→confirmed
+ * promotion — so the failure "donates" its seats to the next passenger in line. The booking
+ * ends in CANCELLED. This is the mirror-image logic of seat allocation, and the reason seat
+ * state must always be recomputed from the DB rather than cached.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional

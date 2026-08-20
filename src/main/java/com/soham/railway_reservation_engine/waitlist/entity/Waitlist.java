@@ -11,6 +11,14 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
+/**
+ * Waitlist entry: a passenger waiting for a berth after confirmed and RAC capacity are gone.
+ *
+ * <p><b>How it works:</b> each entry is queued per (schedule, quota) with a {@code waitlistNumber}
+ * (1 = next in line). The unique (schedule, quota, waitlist_number) constraint means numbering
+ * can't collide even under concurrency. When a seat frees up, the lowest-numbered ACTIVE entry is
+ * promoted to RAC or CONFIRMED. Passengers are linked one-to-one — one person, one queue position.
+ */
 @Entity
 @Table(
         name = "waitlist",

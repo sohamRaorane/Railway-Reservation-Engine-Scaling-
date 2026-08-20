@@ -14,6 +14,19 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Data access for schedules, including the train-search and chart-locking queries.
+ *
+ * <p>{@code searchTrains} joins schedule → train → two route entries (source and destination),
+ * enforcing both belong to the same train and that the source stop precedes the destination
+ * ({@code sequenceNo} comparison), then projects a compact {@code TrainSearchResponse} directly
+ * in JPQL — a single query instead of N+1 lookups.
+ *
+ * <p>{@code markChartPreparing} is the atomic claim used at chart time: {@code UPDATE ... WHERE
+ * status = OPEN} returns the affected-row count. Exactly one caller gets 1; everyone else gets 0
+ * — this <i>compare-and-set</i> is what serialises chart preparation across multiple scheduler
+ * instances.
+ */
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     //this is for find the schedule for  a train X on journery date Y

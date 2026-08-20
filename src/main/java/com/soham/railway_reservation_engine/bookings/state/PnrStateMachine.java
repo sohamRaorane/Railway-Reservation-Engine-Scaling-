@@ -9,6 +9,25 @@ import java.util.Map;
 import java.util.Set;
 
 @Component
+/**
+ * State machine that governs valid PNR (booking) status transitions.
+ *
+ * <p><b>Advanced Java concept — State design pattern:</b> instead of scattered {@code if/else}
+ * checks throughout the codebase, all legal transitions live in one explicit transition table
+ * (an {@code EnumMap<BookingStatus, Set<BookingStatus>>}). Any caller can ask
+ * {@link #canTransition} or {@link #validateTransition} before mutating a booking's status.
+ *
+ * <p><b>Allowed transitions:</b>
+ * <ul>
+ *   <li>CONFIRMED → CONFIRMED, CANCELLED</li>
+ *   <li>RAC → CONFIRMED, CANCELLED</li>
+ *   <li>WAITLIST → RAC, CONFIRMED, CANCELLED (a waitlisted passenger can be promoted step-wise)</li>
+ *   <li>CANCELLED → (none) — terminal state</li>
+ * </ul>
+ *
+ * <p>This makes the domain rules testable in isolation (see {@code PnrStateMachineTest}) and
+ * impossible to violate accidentally.
+ */
 public class PnrStateMachine {
     private final Map<BookingStatus , Set<BookingStatus>> transitionMap  = new EnumMap<>(BookingStatus.class);
 

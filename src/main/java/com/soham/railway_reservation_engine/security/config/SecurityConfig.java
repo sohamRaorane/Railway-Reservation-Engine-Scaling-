@@ -14,8 +14,32 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@Configuration // make it as a  config class --> spring will scan all the beans and register all the bean methods
-@RequiredArgsConstructor //automatically injects the  final wale constructor
+/**
+ * Central security wiring: password hashing, authentication manager, and the filter chain.
+ *
+ * <p><b>Why this class must exist:</b> without it, Spring Boot's defaults apply — every endpoint
+ * protected, a random password generated at startup, and a browser login page. We replace that
+ * with a stateless JWT setup:
+ * <ul>
+ *   <li><b>CSRF disabled</b> — Cross-Site Request Forgery protection exists for cookie/session
+ *       auth in browsers; our Bearer-token, stateless API doesn't rely on cookies, and the
+ *       payment webhook must be callable by Razorpay's servers.</li>
+ *   <li><b>STATELESS sessions</b> — no {@code HttpSession}; each request is authenticated solely
+ *       by its JWT, which is what makes horizontal scaling trivial.</li>
+ *   <li><b>Route rules</b> — auth endpoints and the webhook are public; {@code /api/v1/admin/**}
+ *       requires {@code ROLE_ADMIN} (mapped from the user's {@code Role} by
+ *       {@code CustomUserDetailsService}); everything else needs any authenticated user.</li>
+ *   <li><b>{@code addFilterBefore(jwtFilter, ...)}</b> — our JWT filter runs BEFORE Spring
+ *       Security's username/password filter, so JWT authentication happens first in the chain.</li>
+ * </ul>
+ *
+ * <p>{@code AuthenticationManager} is the engine that processes authentication requests — used by
+ * {@code AuthService} for login (it feeds the username/password into
+ * {@code CustomUserDetailsService} + {@code BCryptPasswordEncoder} and throws if they don't match).
+ * {@code PasswordEncoder} uses BCrypt: a salted, deliberately slow hash — safe to store.
+ */
+@Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
     /*
     what happens if we do not use this class?

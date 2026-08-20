@@ -7,6 +7,21 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
+/**
+ * Temporary seat-hold bookkeeping in Redis, keyed {@code seat_hold:<scheduleId>:<seatId>}.
+ *
+ * <p><b>Why a hold at all?</b> A booking is made, but payment happens LATER (user is redirected
+ * to Razorpay). Without a hold, another customer could grab the same seat before payment lands.
+ * The hold therefore reserves the seat for the payment window.
+ *
+ * <p><b>Why Redis + TTL instead of a DB column?</b> A TTL gives a self-expiring reservation for
+ * free: if the user never pays, the key vanishes after the hold duration (2 minutes) and the seat
+ * becomes bookable again — no cleanup job needed. {@code setIfAbsent} ({@code SET NX}) is atomic:
+ * only the FIRST concurrent booker of a seat wins, making the check-and-set race-free.
+ *
+ * <p>On payment success/failure the booking flow deletes the hold explicitly
+ * ({@code releaseSeat}); the TTL is only the fallback for abandoned payments.
+ */
 @Service
 @RequiredArgsConstructor
 public class SeatHoldService {

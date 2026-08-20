@@ -10,6 +10,14 @@ import java.time.LocalDateTime;
 
 
 
+/**
+ * Money returned to the customer after a cancellation.
+ *
+ * <p>One refund per payment (one-to-one). The refund amount is computed by
+ * {@code ChargeCalculator} from the cancellation's time-window slab; the record tracks the
+ * lifecycle (PENDING → PROCESSING → SUCCESS/FAILED) and the gateway's transaction id for
+ * reconciliation. Like payments, amounts are {@code BigDecimal} — never floating point.
+ */
 @Entity
 @Table(name = "refunds")
 @Getter

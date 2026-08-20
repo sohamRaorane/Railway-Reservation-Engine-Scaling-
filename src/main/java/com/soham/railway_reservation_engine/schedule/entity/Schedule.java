@@ -16,6 +16,17 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A specific journey: one train on one date. This is the anchor of all reservation state.
+ *
+ * <p><b>Terminology:</b> the {@code Route} entity describes a train's stops in the abstract; a
+ * {@code Schedule} instantiates the train for a concrete {@code journeyDate}. Every booking,
+ * quota allocation, waitlist and RAC entry hangs off a schedule, and availability answers are
+ * always per schedule (same train, different date = different pools).
+ *
+ * <p>{@code status} gates the lifecycle: OPEN (accepting bookings) → CHART_PREPARING →
+ * CHART_PREPARED (no more bookings; the reservation chart is final).
+ */
 @Entity
 @Table(name = "schedules")
 @Getter

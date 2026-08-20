@@ -22,6 +22,24 @@ import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
+/**
+ * Picks the first free seat of the requested coach type under a given quota.
+ *
+ * <p><b>Advanced Java/DB concept — optimistic-check + pessimistic-lock + re-check:</b>
+ * <ol>
+ *   <li><b>Check</b> — read the quota allocation's {@code availableSeats}; if exhausted, skip the coach.</li>
+ *   <li><b>Lock</b> — for a candidate seat, acquire a DB row lock via
+ *       {@code SeatRepository.findByIdForUpdate} ({@code SELECT ... FOR UPDATE}, i.e.
+ *       {@code PESSIMISTIC_WRITE}). Other transactions touching that seat block until commit/rollback.</li>
+ *   <li><b>Re-check</b> — after acquiring the lock, re-verify the seat is not booked and not held in
+ *       Redis, because its state may have changed while waiting for the lock.</li>
+ *   <li><b>Use</b> — return the locked seat for allocation.</li>
+ * </ol>
+ *
+ * <p>Redis and Postgres locking are complementary: Redis holds implement the <b>payment-window TTL</b>
+ * (a temporary reservation that expires if the user never pays), while Postgres row locks protect
+ * concurrent <i>transactions</i> from allocating the same seat at the same instant.
+ */
 public class FirstAvailableSeatStrategy  implements SeatAllocationStrategy{
 
     private final CoachRepository coachRepository;

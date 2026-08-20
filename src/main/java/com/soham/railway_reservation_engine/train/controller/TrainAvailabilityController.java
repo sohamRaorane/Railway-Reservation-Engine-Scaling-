@@ -8,6 +8,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
+/**
+ * HTTP layer for availability lookup: {@code GET /api/v1/trains/{trainId}/availability?date=..&quota=..}.
+ * Delegates straight to the cache-aside {@code TrainAvailabilityService}.
+ */
 @RestController
 @RequestMapping("/api/v1/trains")
 @RequiredArgsConstructor

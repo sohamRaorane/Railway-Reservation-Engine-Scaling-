@@ -11,6 +11,13 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.List;
 
+/**
+ * Bridges Spring Security's authentication layer to our {@code User} table.
+ *
+ * <p>Called by Spring Security (and by {@code JwtFilter}) with a username; it resolves the user
+ * from the DB and wraps it as {@code CustomUserDetails}, mapping the user's {@code Role} to a
+ * {@code ROLE_*} authority string — the format Spring's {@code hasRole(...)} expressions expect.
+ */
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {

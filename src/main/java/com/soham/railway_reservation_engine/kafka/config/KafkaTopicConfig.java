@@ -6,17 +6,21 @@ import org.springframework.context.annotation.Configuration;
 
 
 
+/**
+ * Declares the Kafka topics this application owns.
+ *
+ * <p>Spring Boot's Kafka Admin API uses these {@code NewTopic} beans to auto-create the topics
+ * at startup if they don't exist. {@code NewTopic(name, numPartitions, replicationFactor)} —
+ * with 1 partition and replication factor 1 (single-broker development setup).
+ *
+ * <p><b>Event-driven architecture:</b> producers write events to these topics; consumers read
+ * from them. Decoupling booking completion from side effects (promotion, notifications) makes
+ * the booking transaction fast and lets those reactions scale independently.
+ */
 @Configuration
 public class KafkaTopicConfig {
-    //these are the topics my application needs .create /manage them
-    //when the spring starts
-    //producers write events to these topics and consumers read events from these topics
-
 
     @Bean
-    //create a kafka topic defination and register it in the spring application context
-    //Spring Boot's Kafka infrastructure can then use Kafka's Admin API to create the topic if it doesn't already exist.
-
     public NewTopic bookingCreatedTopic(){
         return new NewTopic("booking.created" , 1 ,(short)1);
     }
