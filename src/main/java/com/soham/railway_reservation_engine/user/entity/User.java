@@ -15,6 +15,18 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A registered user account — the customer who books and cancels tickets.
+ *
+ * <p>Stores identity data (name, email, gender, DOB), authentication data (the BCrypt password
+ * hash — never the plaintext), role (USER/ADMIN), and the KYC placeholder flag. {@code email} is
+ * the login identifier; {@code defencePersonnel} is consulted by the Defence-quota eligibility
+ * rule in {@code QuotaEligibilityValidator}.
+ *
+ * <p>Note the comments about timestamps: the schema (columns, defaults) is owned by Flyway
+ * migrations, while Hibernate's {@code @CreationTimestamp}/{@code @UpdateTimestamp} fill the
+ * values at runtime — schema management and ORM behaviour are intentionally split.
+ */
 @Entity
 @Table(name = "users")
 @Getter
