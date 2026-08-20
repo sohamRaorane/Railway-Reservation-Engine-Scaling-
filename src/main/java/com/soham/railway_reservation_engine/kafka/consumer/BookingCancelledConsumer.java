@@ -78,15 +78,22 @@ public class BookingCancelledConsumer {
             }
 
             log.info(
-                    "booking.cancelled promotion starting: scheduleId={}, quotaId={}",
+                    "booking.cancelled promotion starting: scheduleId={}, quotaId={}, freedSeatCount={}",
                     schedule.getId(),
-                    quota.getId()
+                    quota.getId(),
+                    event.freedSeatCount()
             );
 
-            waitlistPromotionService.promotePassenger(
-                    schedule,
-                    quota
-            );
+            // Run one promotion per released confirmed seat: a cancelled booking with N confirmed
+            // passengers frees N seats, so N waiting passengers can be moved up. promotePassenger
+            // locks the quota pool per call and no-ops cleanly when nothing is waiting, so repeated
+            // calls are safe.
+            for (int i = 0; i < event.freedSeatCount(); i++) {
+                waitlistPromotionService.promotePassenger(
+                        schedule,
+                        quota
+                );
+            }
 
             log.info(
                     "booking.cancelled promotion completed: bookingId={}, pnr={}",
