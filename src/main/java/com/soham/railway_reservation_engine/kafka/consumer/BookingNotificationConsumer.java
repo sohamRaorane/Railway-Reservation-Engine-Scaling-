@@ -19,15 +19,6 @@ public class BookingNotificationConsumer {
     )
     public void consumeBookingCancelled(BookingCancelledEvent event) {
 
-        System.out.println("==========================================");
-        System.out.println("      NOTIFICATION CONSUMER TRIGGERED");
-        System.out.println("==========================================");
-        System.out.println("Booking ID     : " + event.bookingId());
-        System.out.println("PNR            : " + event.pnr());
-        System.out.println("Correlation ID : " + event.correlationId());
-        System.out.println("Message        : Booking cancelled successfully");
-        System.out.println("==========================================");
-
         log.info(
                 "NOTIFICATION SENT | correlationId={} | bookingId={} | pnr={} | message=Booking cancelled successfully",
                 event.correlationId(),
