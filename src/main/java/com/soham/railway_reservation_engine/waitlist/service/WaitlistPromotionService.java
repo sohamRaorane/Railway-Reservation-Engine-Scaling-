@@ -29,16 +29,26 @@ import org.springframework.stereotype.Service;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Moves waiting passengers up the reservation ladder whenever capacity frees up.
+ *
+ * <p><b>The promotion ladder (per schedule+quota):</b>
+ * <ol>
+ *   <li>{@code promoteWaitlistToRac} — top waitlist entry → RAC, when an RAC slot frees.</li>
+ *   <li>{@code promoteWaitlistToConfirmed} — top waitlist entry → confirmed seat, when a
+ *       confirmed seat frees (used at chart time).</li>
+ *   <li>{@code promotePassenger} — RAC → confirmed seat, then back-fills the vacated RAC slot
+ *       from the waitlist (RAC→CONFIRMED first, then WL→RAC) — the full one-slot cascade.</li>
+ * </ol>
+ *
+ * <p>Every method first locks the {@code QuotaReservationPool} row ({@code findForUpdate}) so
+ * promotion logic for the same quota is fully serialised — otherwise two concurrent cancellations
+ * could promote the same waitlist entry twice. Seat allocation reuses the exact same strategy the
+ * booking flow uses, so the same concurrency protections apply.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
-/*
-find the first rac --> if it does not exists then return
-if exsists --> Then update the passenger status
-booking status
-increase the rac number
-return
- */
 public class WaitlistPromotionService {
 
     private final RacRepository racRepository;
