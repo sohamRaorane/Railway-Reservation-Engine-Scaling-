@@ -11,6 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+/**
+ * A train: the immutable reference record a journey is built around.
+ *
+ * <p>{@code number} is the public identifier (e.g. {@code 12951}) used across the API;
+ * {@code type} distinguishes express/superfast/premium categories. The relationships fan out to
+ * its coaches (physical layout), routes (static stops) and schedules (per-date journeys) — the
+ * train itself carries no mutable reservation state.
+ */
 @Entity
 @Table(
         name = "trains"
