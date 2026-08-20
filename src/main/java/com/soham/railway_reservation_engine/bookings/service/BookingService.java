@@ -52,6 +52,32 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Transactional
+/**
+ * Orchestrates the end-to-end booking flow for a ticket request.
+ *
+ * <p><b>Business flow:</b>
+ * <ol>
+ *   <li><b>Idempotency guard</b> — the same {@code Idempotency-Key} header returns the
+ *       already-created booking instead of creating a duplicate PNR (protects against
+ *       client double-submits / retries).</li>
+ *   <li><b>Validation</b> — resolves user, train, schedule (must be {@code OPEN}) and quota.</li>
+ *   <li><b>Per-passenger processing</b> — validates quota eligibility, then tries to allocate a
+ *       physical seat; on success the seat is {@link SeatHoldService held in Redis} (payment-window
+ *       TTL) and the quota's available count is decremented. If allocation fails, the passenger
+ *       falls back to <b>RAC</b> (shared side-lower berth) and then <b>waitlist</b>, each with
+ *       quota-scoped sequence numbers.</li>
+ *   <li><b>Persistence</b> — saves passengers, RAC/waitlist entries and updated quota counters in
+ *       one transaction.</li>
+ *   <li><b>Event publishing</b> — a {@code booking.created} Kafka event is published only
+ *       <i>after</i> the DB transaction commits (via {@code TransactionSynchronization.afterCommit})
+ *       so consumers never observe uncommitted/rolled-back state.</li>
+ * </ol>
+ *
+ * <p><b>Key concept — RAC vs WL:</b> RAC (Reservation Against Cancellation) shares a side-lower
+ * berth between two passengers and is the "first step" of the waitlist; when RAC pools fill up,
+ * passengers are placed on the numeric waitlist. Both are tracked per quota so each quota's queue
+ * behaves independently.
+ */
 public class BookingService {
     /*
       This class will contain the business logic for handling booking operations.

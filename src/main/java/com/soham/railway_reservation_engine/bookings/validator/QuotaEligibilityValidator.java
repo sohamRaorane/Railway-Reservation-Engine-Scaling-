@@ -11,6 +11,21 @@ import org.springframework.stereotype.Component;
 
 //Following the srp
 @Component
+/**
+ * Encapsulates the eligibility rules that decide who may book under a specific quota.
+ *
+ * <p><b>Business rules (real IRCTC-style quotas):</b>
+ * <ul>
+ *   <li>{@code GN} (General) — anyone.</li>
+ *   <li>{@code LD} (Ladies) — female passengers only.</li>
+ *   <li>{@code SS} (Senior Citizen) — age ≥ 60 for males, ≥ 58 for females.</li>
+ *   <li>{@code DEF} (Defence) — only users flagged as defence personnel.</li>
+ *   <li>{@code TQ} (Tatkal) — anyone (premium-fare quota).</li>
+ * </ul>
+ *
+ * <p>Kept as its own class (single-responsibility principle) so the rules are unit-testable
+ * in isolation and centralised rather than scattered across the booking flow.
+ */
 public class QuotaEligibilityValidator {
     public  void validate(PassengerRequest passenger , User user, Quota quota){
         String quotaCode = quota.getCode();

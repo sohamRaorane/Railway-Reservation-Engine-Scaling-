@@ -21,6 +21,21 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * Handles cancellation of an entire booking (all passengers).
+ *
+ * <p><b>Business flow:</b>
+ * <ol>
+ *   <li>Looks up the booking by PNR.</li>
+ *   <li>Computes the refund via {@link com.soham.railway_reservation_engine.cancellation.service.ChargeCalculator}
+ *       — a time-window slab rule (75% refund &gt;48h, 50% 12–48h, 0% &lt;12h before departure).</li>
+ *   <li>Marks the booking and every passenger {@code CANCELLED} and releases confirmed seats back
+ *       into their quota allocation (increments {@code availableSeats}).</li>
+ *   <li>Publishes a {@code booking.cancelled} Kafka event <b>after commit</b>, which the
+ *       {@code BookingCancelledConsumer} consumes to trigger waitlist/RAC promotion asynchronously —
+ *       decoupling cancellation from promotion so the caller does not wait for seat re-allocation.</li>
+ * </ol>
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
