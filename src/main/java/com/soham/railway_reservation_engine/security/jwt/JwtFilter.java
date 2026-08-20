@@ -44,9 +44,7 @@ public class JwtFilter  extends OncePerRequestFilter  {
             filterChain.doFilter(request,response);
             return; // goback
         }
-        System.out.println("Authorization Header = " + authHeader);
         jwt = authHeader.substring(7); //7th index is my first jwt char that  i want to extract
-        System.out.println("JWT = " + jwt);
         username = jwtService.extractUsername(jwt);
 
 
