@@ -3,17 +3,13 @@ package com.soham.railway_reservation_engine.quotaSeatAllocation.repository;
 
 
 import com.soham.railway_reservation_engine.coach.entity.Coach;
-import com.soham.railway_reservation_engine.common.enums.CoachType;
 import com.soham.railway_reservation_engine.quota.entity.Quota;
 import com.soham.railway_reservation_engine.quotaSeatAllocation.entity.QuotaSeatAllocation;
 import com.soham.railway_reservation_engine.schedule.entity.Schedule;
-import com.soham.railway_reservation_engine.train.dto.TrainAvailabilityResponse;
-import com.soham.railway_reservation_engine.train.entity.Train;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import javax.swing.text.html.Option;
 import java.time.LocalDate;
 import java.util.Optional;
 
