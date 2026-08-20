@@ -8,6 +8,15 @@ import org.springframework.cglib.core.Local;
 
 import java.time.LocalTime;
 
+/**
+ * One stop of one train: the (train, station, sequenceNo) triple describes where a train
+ * halts, in what order, at what times, and how far along the journey that stop is.
+ *
+ * <p>This is static schedule metadata (independent of any travel date); the per-DATE journey is a
+ * {@code Schedule}. {@code sequenceNo} orders the stops (1 = origin, N = destination);
+ * {@code distanceKm} is cumulative, so the fare for a boarding/alighting pair is the difference
+ * between the two stops' distances.
+ */
 @Entity
 @Table(name = "routes")
 @Getter
@@ -15,7 +24,6 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-//so what does it represents --> it represents one stop of one train
 public class Route {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
