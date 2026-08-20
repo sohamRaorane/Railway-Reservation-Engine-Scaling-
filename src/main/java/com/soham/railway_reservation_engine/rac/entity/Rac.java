@@ -12,6 +12,16 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
+/**
+ * RAC (Reservation Against Cancellation) entry — a passenger granted a shared berth
+ * while waiting for a full confirmed berth.
+ *
+ * <p><b>Terminology:</b> when confirmed seats are exhausted but RAC capacity remains, the passenger
+ * boards the train anyway and is assigned a side-lower berth SHARED with another RAC passenger.
+ * The {@code racNumber} is the queue position per schedule+quota (1, 2, 3...) and the unique
+ * (schedule, racNumber) constraint guarantees numbering cannot collide across concurrent
+ * allocations. The passenger-to-RAC link is one-to-one (a passenger can hold only one RAC slot).
+ */
 @Entity
 @Table(
         name = "rac",

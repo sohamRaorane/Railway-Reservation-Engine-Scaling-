@@ -11,6 +11,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Data access for RAC entries. The ordering queries implement the queue semantics of RAC:
+ * <ul>
+ *   <li>highest racNumber (descending) → the newest entry, used to issue the next number</li>
+ *   <li>lowest racNumber (ascending) → the most senior entry, promoted first when a seat frees up</li>
+ * </ul>
+ * Filtering by {@code RacStatus} matters during promotion so cancelled entries are skipped.
+ */
 public interface RacRepository extends JpaRepository<Rac, Long> {
 
     Optional<Rac> findByPassenger(Passenger passenger);
