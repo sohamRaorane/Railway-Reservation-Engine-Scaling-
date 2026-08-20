@@ -6,6 +6,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+/**
+ * Publish side of the event pipeline — sends booking lifecycle events to Kafka.
+ *
+ * <p><b>Why Kafka instead of calling the consumers directly?</b> The producer fires events
+ * <i>after</i> the booking transaction commits. Downstream work (waitlist promotion, sending
+ * notifications) is decoupled, retried by the broker, and can scale independently. If it were
+ * in-line, a slow notification could block the booking request itself.
+ *
+ * <p><b>Partitioning:</b> the PNR is used as the message key, so all events for the same booking
+ * land in the same partition and are processed in order (per-partition ordering guarantee).
+ */
 @Component
 @RequiredArgsConstructor
 public class BookingEventProducer {

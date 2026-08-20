@@ -11,6 +11,19 @@ import org.slf4j.MDC;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+/**
+ * Business-effect consumer of {@code booking.cancelled}: triggers waitlist/RAC promotion.
+ *
+ * <p><b>Flow:</b> on a cancellation event it reloads the schedule and quota by id, then delegates
+ * to {@code WaitlistPromotionService.promotePassenger} to upgrade the next waiting passenger into
+ * the freed slot. These steps run <i>asynchronously</i> from the HTTP cancellation request thanks
+ * to Kafka.
+ *
+ * <p><b>Advanced logging concept:</b> the correlation id (carried inside the event by the
+ * producer) is restored into the MDC before processing and removed in a {@code finally} block.
+ * Kafka consumer threads are reused across messages, so leaving the MDC set would leak the id
+ * into unrelated log lines of later messages.
+ */
 @Component
 @RequiredArgsConstructor
 public class BookingCancelledConsumer {
