@@ -113,7 +113,6 @@ public class AuthService {
     public RefreshResponse refresh(RefreshRequest refreshRequest) {
         // Implementation for refreshing the access token using the provided refresh token
         //get the refresh token
-        System.out.println("Inside the refresh service");
         RefreshToken refreshToken = refreshTokenService.findByToken(refreshRequest.getRefreshToken());
 
         //Handling the edge cases
