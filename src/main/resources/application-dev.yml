@@ -2,8 +2,8 @@ spring:
 
   datasource:
     url: jdbc:postgresql://postgres:5432/railway_db?options=-c%20TimeZone=Asia/Kolkata
-    username: postgres
-    password: postgres
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
 
@@ -63,13 +63,13 @@ spring:
 
 
 jwt:
-  secret: aGYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXphYmNkZWZnlqa2xtbm9wcXJzdHV2d3h5ejEyMzQ1Njc4OTA=
+  secret: ${JWT_SECRET}
   expiration: 86400000
 
 razorpay:
-  key-id: rzp_test_TNDBuagy1cIOMx
-  key-secret: zCy0IQE7iwmt0CYg9d0kRK9w
-  webhook-secret: 7S@ZvPxe8sU3dvi
+  key-id: ${RAZORPAY_KEY_ID}
+  key-secret: ${RAZORPAY_KEY_SECRET}
+  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET}
 
 logging:
   pattern:
