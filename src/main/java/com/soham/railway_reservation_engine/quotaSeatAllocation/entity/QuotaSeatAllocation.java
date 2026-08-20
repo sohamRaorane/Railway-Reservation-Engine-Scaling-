@@ -10,6 +10,18 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+/**
+ * Availability of a quota's berths on ONE coach of ONE train-date (schedule).
+ *
+ * <p><b>Modelling:</b> seats are scarce per coach, and each coach's seats are partitioned among
+ * quotas — so availability is tracked at the (schedule × coach × quota) grain. This is exactly the
+ * granularity {@code FirstAvailableSeatStrategy} needs: it scans coaches of the requested type,
+ * reads each coach's {@code availableSeats} for the quota, and picks a free seat inside.
+ *
+ * <p>Follows the <b>Single Responsibility Principle</b>: this row owns <i>confirmed-seat</i>
+ * counts only. RAC and waitlist capacity live in {@code QuotaReservationPool}, keeping each
+ * counter in exactly one place.
+ */
 @Entity
 @Table(
         name = "quota_seat_allocations"
@@ -21,7 +33,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 
-//now  it is following SRP
 public class QuotaSeatAllocation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
