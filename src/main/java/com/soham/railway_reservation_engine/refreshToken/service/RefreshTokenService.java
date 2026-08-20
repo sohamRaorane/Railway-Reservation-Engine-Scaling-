@@ -8,12 +8,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
-/*
-Functions:
-generate the refresh token
-save refresh token
-validate refresh token
-revoke refresh token
+/**
+ * Lifecycle management of refresh tokens: create, validate, expire and revoke.
+ *
+ * <p><b>Terminology:</b> "revoke" means officially cancelling a credential so it is permanently
+ * unusable (here: setting the {@code revoked} flag), as opposed to letting it expire naturally.
+ * Tokens are 128-bit UUIDs — high entropy, generated on the server, never exposed in logs.
  */
 @Service
 @RequiredArgsConstructor

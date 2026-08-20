@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 
-//Jpa --> responsible for CURD OPERATIONS ONLY
-
+/**
+ * Data access for refresh tokens. JPA repositories are strictly CRUD; validation and business
+ * rules (expiry checks, revocation) live in {@code RefreshTokenService}.
+ */
 public interface RefreshTokenRepository  extends JpaRepository<RefreshToken, Long> {
     Optional<RefreshToken> findByToken(String token);
 
