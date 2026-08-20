@@ -184,7 +184,6 @@ public class BookingService {
 
             //Allocate Seat for this passenger -->  wrap it in the try -catch block so if the seat is not allocated it goes to the waiting list criteria
             try {
-                System.out.println("========== BEFORE SEAT ALLOCATION ==========");
                 Seat allocatedSeat = seatAllocationService.allocateSeat(
                         schedule,
                         bookingRequest.coachType(),
@@ -192,17 +191,9 @@ public class BookingService {
                         reservedSeatIds
                 );
 
-                System.out.println("========== AFTER SEAT ALLOCATION ==========");
-                System.out.println("Allocated Seat = " +
-                        (allocatedSeat != null ? allocatedSeat.getId() : "NULL"));
                 reservedSeatIds.add(allocatedSeat.getId());
 
-                System.out.println("========== BEFORE SEAT HOLD ==========");
-                System.out.println("Schedule ID: " + schedule.getId());
-                System.out.println("Seat ID: " + allocatedSeat.getId());
-                System.out.println("Booking ID: " + savedBooking.getId());
                 //adding the redis hold after seat allocation
-
                 boolean  seatHeld = seatHoldService.holdSeat(
                         schedule.getId(),
                         allocatedSeat.getId(),
