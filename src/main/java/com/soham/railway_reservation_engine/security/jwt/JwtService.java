@@ -18,13 +18,27 @@ import java.util.Map;
 import java.util.function.Function;
 
 
-//To generate the JWT token , and to read and validate that token
-//So currently my JWT generates:
-//{
-//  "sub": "sohamraorane08@gmail.com",
-//  "iat": 1753640000,
-//  "exp": 1753726400
-//}
+/**
+ * Generates, reads and validates JWT access tokens.
+ *
+ * <p><b>Token anatomy:</b> a JWT is a base64url triple — header, claims, signature. The claims of
+ * the tokens issued here are:
+ * <pre>
+ * { "sub": "sohamraorane08@gmail.com", "iat": ..., "exp": ... }
+ * </pre>
+ * {@code sub} is the username (email), {@code iat}/{@code exp} bound the validity window. The
+ * signature is HMAC-SHA256 over header+claims with a secret key known only to the server, so a
+ * client cannot forge or tamper with claims (verification would fail).
+ *
+ * <p><b>Advanced Java:</b> {@code extractClaim} is generic ({@code <T>}) and takes a
+ * {@code Function<Claims, T>} — a <i>functional interface</i> — so callers pass small lambdas
+ * like {@code claims -> claims.getSubject()} to pull out any single claim without duplicating the
+ * parsing logic. {@code generateToken} is overloaded: the two-arg variant adds extra claims, the
+ * one-arg variant delegates to it with an empty map.
+ *
+ * <p>Signing keys are derived from a base64 secret via {@code Keys.hmacShaKeyFor} — crypto
+ * algorithms operate on raw bytes, not strings.
+ */
 @Service
 public class JwtService {
     @Value("${jwt.secret}")

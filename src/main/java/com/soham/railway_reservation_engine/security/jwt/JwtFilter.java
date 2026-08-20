@@ -17,12 +17,29 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@Component // Spring bean create one obj and manage  it is used generic spring managed class
+/**
+ * Servlet filter that authenticates every request from its {@code Authorization: Bearer <jwt>}
+ * header, BEFORE the request reaches any controller.
+ *
+ * <p><b>Filter flow:</b>
+ * <ol>
+ *   <li>No/invalid header → pass through unauthenticated (the security config decides whether
+ *       that endpoint needs auth anyway).</li>
+ *   <li>Extract the token (after the "Bearer " prefix) and its username (subject).</li>
+ *   <li>If no authentication exists yet in the {@code SecurityContextHolder} (a thread-local
+ *       store of "who is the current user"), load the user and validate the token against them.</li>
+ *   <li>On success, build a {@code UsernamePasswordAuthenticationToken} and store it in the
+ *       security context — the controller then reads {@code @AuthenticationPrincipal} from it.</li>
+ * </ol>
+ *
+ * <p>Extends {@code OncePerRequestFilter}, guaranteeing single execution per request. Extending
+ * the stateless JWT pattern means no server-side sessions — any instance can validate any request.
+ */
+@Component
 @RequiredArgsConstructor
 public class JwtFilter  extends OncePerRequestFilter  {
-    //OncePer Request filter --> one execution of this filter
     private final JwtService jwtService;
-    private final CustomUserDetailsService customUserDetailsService; //it has only one method which is load the user by the username
+    private final CustomUserDetailsService customUserDetailsService;
 
 
     //automatically called for every incoming HTTP request
