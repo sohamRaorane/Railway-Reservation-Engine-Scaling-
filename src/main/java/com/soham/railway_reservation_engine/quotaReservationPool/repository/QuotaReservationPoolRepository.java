@@ -12,6 +12,16 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.Optional;
 
+/**
+ * Data access for the quota reservation pool.
+ *
+ * <p>{@code findForUpdate} is the concurrency linchpin: the {@code @Lock(PESSIMISTIC_WRITE)}
+ * translates to {@code SELECT ... FOR UPDATE}, locking the pool row for the duration of the
+ * surrounding transaction. Two concurrent bookings for the same train-date/quota therefore
+ * <b>serialise</b> on this row — one waits until the other commits — preventing double-selling
+ * the last RAC or waitlist slot. {@code findPool} is the read-only variant used by the
+ * availability service (no lock needed).
+ */
 public interface QuotaReservationPoolRepository extends JpaRepository<QuotaReservationPool, Long> {
 
     Optional<QuotaReservationPool> findByScheduleAndQuota(Schedule schedule, Quota quota);
