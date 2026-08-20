@@ -65,12 +65,14 @@
 
 
     // --------------------------------------------------
-    // TEMPORARY TEST VALUES
+    // TEMPORARY TEST VALUES — paste from the POST /payment/initiate response.
+    // Never hardcode real keys here: the key id is public (browser-side), but
+    // hardcoding it here means it drifts from the backend env config.
     // --------------------------------------------------
 
-    const keyId = "rzp_test_TNDBuagy1cIOMx";
+    const keyId = "PASTE_KEY_ID_FROM_PAYMENT_INITIATE_RESPONSE";
 
-    const razorpayOrderId = "order_TNIuVeL7HWO285";
+    const razorpayOrderId = "PASTE_ORDER_ID_FROM_PAYMENT_INITIATE_RESPONSE";
 
 
     // --------------------------------------------------
