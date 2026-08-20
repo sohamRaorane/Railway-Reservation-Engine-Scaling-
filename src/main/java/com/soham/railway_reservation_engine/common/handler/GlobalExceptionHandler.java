@@ -14,8 +14,25 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 
+/**
+ * Global, centralised exception interceptor ({@code @RestControllerAdvice}).
+ *
+ * <p><b>Advanced Spring concept — AOP-based exception translation:</b> instead of wrapping every
+ * controller method in try/catch, one advice intercepts ALL exceptions thrown by any controller
+ * and maps each exception <i>type</i> to a consistent HTTP status + {@code ErrorResponse} body.
+ * Rules of this handler:
+ * <ul>
+ *   <li>{@code BookingNotFoundException} → 404 NOT_FOUND</li>
+ *   <li>{@code PaymentAlreadyInitiatedException} → 409 CONFLICT (duplicate attempt)</li>
+ *   <li>{@code PaymentNotAllowedException} → 400 BAD_REQUEST</li>
+ *   <li>any other {@code Exception} → 500 INTERNAL_SERVER_ERROR (safety net — never leaks internals)</li>
+ * </ul>
+ *
+ * <p>The response includes the request URI so clients can correlate the error with the call
+ * that produced it.
+ */
 @Builder
-@RestControllerAdvice// creates a global , centralized interceptor for your application's backend
+@RestControllerAdvice
 public class GlobalExceptionHandler {
     //Booking not found
     @ExceptionHandler(BookingNotFoundException.class)
