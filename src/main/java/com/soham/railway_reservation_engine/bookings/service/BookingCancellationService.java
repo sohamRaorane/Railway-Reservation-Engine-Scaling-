@@ -7,10 +7,15 @@ import com.soham.railway_reservation_engine.bookings.repository.BookingRepositor
 import com.soham.railway_reservation_engine.cancellation.service.ChargeCalculator;
 import com.soham.railway_reservation_engine.common.enums.BookingStatus;
 import com.soham.railway_reservation_engine.common.enums.PassengerStatus;
+import com.soham.railway_reservation_engine.common.enums.RefundStatus;
 import com.soham.railway_reservation_engine.kafka.producer.BookingEventProducer;
 import com.soham.railway_reservation_engine.passenger.entity.Passenger;
+import com.soham.railway_reservation_engine.payment.entity.Payment;
+import com.soham.railway_reservation_engine.payment.repository.PaymentRepository;
 import com.soham.railway_reservation_engine.quotaSeatAllocation.entity.QuotaSeatAllocation;
 import com.soham.railway_reservation_engine.quotaSeatAllocation.repository.QuotaSeatAllocationRepository;
+import com.soham.railway_reservation_engine.refund.entity.Refund;
+import com.soham.railway_reservation_engine.refund.repository.RefundRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -43,6 +48,8 @@ import java.time.LocalDateTime;
 public class BookingCancellationService {
     private final BookingRepository bookingRepository;
     private final QuotaSeatAllocationRepository quotaSeatAllocationRepository;
+    private final PaymentRepository paymentRepository;
+    private final RefundRepository refundRepository;
     private final ChargeCalculator chargeCalculator;
     private static final Logger log = LoggerFactory.getLogger(BookingCancellationService.class);
    // private final WaitlistPromotionService waitlistPromotionService;
@@ -70,7 +77,7 @@ public class BookingCancellationService {
                         booking.getSchedule().getJourneyDate(),
                         booking.getSchedule().getDepartureTime()
                 );
-        BigDecimal refund = chargeCalculator.calculateRefund(
+        BigDecimal refundAmount = chargeCalculator.calculateRefund(
                 booking.getTotalFare(),
                departureDateTime,
                 LocalDateTime.now()
@@ -79,27 +86,46 @@ public class BookingCancellationService {
         log.info(
                 "Refund amount calculated: pnr={}, refundAmount={}",
                 booking.getPnr(),
-                refund
+                refundAmount
         );
 
+        //Persist an audit trail for the refund — the Refund entity/table exist but were never
+        //written here, so cancellations had no record of the money returned.
+        paymentRepository.findByBooking(booking).ifPresent(payment ->
+                refundRepository.save(
+                        Refund.builder()
+                                .payment(payment)
+                                .refundAmount(refundAmount)
+                                .refundReason("Booking cancelled: " + booking.getPnr())
+                                .refundStatus(RefundStatus.PENDING)
+                                .build()
+                )
+        );
 
         //cancel booking
         booking.setBookingStatus(BookingStatus.CANCELLED);
 
-        //cancel every passneger
+        //cancel every passenger and count the confirmed seats released so the consumer
+        //can run one promotion per freed seat (see BookingCancelledEvent.freedSeatCount)
+        int freedSeatCount = 0;
 
         for(Passenger passenger : booking.getPassengers()){
             passenger.setPassengerStatus(PassengerStatus.CANCELLED);
             //then release the confirm seat only
             if(passenger.getSeat() != null){
                 releaseSeat(booking , passenger);
+                freedSeatCount++;
             }
         }
         log.info(
-                "Booking cancellation committed , publishing Kafka event: bookingId= {} , pnr ={}",
+                "Booking cancellation committed , publishing Kafka event: bookingId= {} , pnr ={}, freedSeatCount={}",
                 booking.getId(),
-                booking.getPnr()
+                booking.getPnr(),
+                freedSeatCount
         );
+
+        // Capture for the afterCommit callback (anonymous class requires effectively-final variables)
+        final int seatsToPromote = freedSeatCount;
 
 
         // Publish after the DB transaction commits to avoid consumers observing uncommitted/rolled-back state
@@ -113,6 +139,7 @@ public class BookingCancellationService {
                                         booking.getPnr(),
                                         booking.getSchedule().getId(),
                                         booking.getQuota().getId(),
+                                        seatsToPromote,
                                         MDC.get("correlationId")
                                 )
                         );
@@ -129,7 +156,7 @@ public class BookingCancellationService {
 
                 booking.getBookingStatus(),
 
-                refund,
+                refundAmount,
 
                 "Booking cancelled successfully."
 
