@@ -11,6 +11,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+/**
+ * A physical coach (carriage) of a train, e.g. "S1" sleeper, "A1" AC 3-tier.
+ *
+ * <p><b>Terminology:</b> a {@code CoachType} (SLEEPER, AC3TIER, ...) is the class of accommodation,
+ * while {@code coachNumber} identifies a specific carriage on a train. Coaches contain seats
+ * ({@code 1..n}) and are the granularity at which per-quota availability is tracked via
+ * {@code QuotaSeatAllocation} — the seat-allocation strategy iterates coaches of the requested type.
+ *
+ * <p><b>Advanced Java note:</b> {@code totalSeats} is {@code Integer} rather than {@code int}
+ * deliberately — the boxed type can be {@code null} to signal "not set", which helps distinguish
+ * "0 seats" from "unknown/missing configuration" when validating data.
+ */
 @Entity
 @Table(name = "coaches")
 @Getter
