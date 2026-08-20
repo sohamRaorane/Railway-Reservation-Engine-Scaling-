@@ -9,10 +9,8 @@ import com.soham.railway_reservation_engine.quotaReservationPool.repository.Quot
 import com.soham.railway_reservation_engine.schedule.entity.Schedule;
 import com.soham.railway_reservation_engine.waitlist.entity.Waitlist;
 import com.soham.railway_reservation_engine.waitlist.repository.WaitlistRepository;
-import jakarta.persistence.Persistence;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 @Service

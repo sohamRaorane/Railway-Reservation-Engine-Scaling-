@@ -48,7 +48,6 @@ public class AuthController {
     public ResponseEntity<RefreshResponse> refresh(
             @RequestBody RefreshRequest request
     ) {
-        //System.out.println("Refresh endpoint reached");
         RefreshResponse refreshResponse = authService.refresh(request);
         return ResponseEntity.ok(refreshResponse);
     }

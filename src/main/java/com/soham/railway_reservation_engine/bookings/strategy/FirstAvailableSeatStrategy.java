@@ -65,17 +65,8 @@ public class FirstAvailableSeatStrategy  implements SeatAllocationStrategy{
         //Add the seats  already allocated during this booking
         bookedSeatIds.addAll(reservedSeatIds);
 
-        System.out.println("========== SEAT STRATEGY ==========");
-        System.out.println("Schedule ID = " + schedule.getId());
-        System.out.println("Coach Type = " + coachType);
-        System.out.println("Quota = " + quotaCode);
-        System.out.println("Booked Seat IDs = " + bookedSeatIds);
-        System.out.println("Reserved Seat IDs = " + reservedSeatIds);
         // Step 4 : Iterate through each coach
         for (Coach coach : coaches) {
-
-            System.out.println("========== CHECKING COACH ==========");
-            System.out.println("Coach ID: " + coach.getId());
 
             Optional<QuotaSeatAllocation> allocationOptional =
                     quotaSeatAllocationRepository
@@ -86,34 +77,17 @@ public class FirstAvailableSeatStrategy  implements SeatAllocationStrategy{
                             );
 
             if (allocationOptional.isEmpty()) {
-                System.out.println(
-                        "No quota allocation found for coach: "
-                                + coach.getId()
-                );
                 continue;
             }
 
             QuotaSeatAllocation allocation = allocationOptional.get();
 
-            System.out.println(
-                    "Quota available seats: "
-                            + allocation.getAvailableSeats()
-            );
-
             if (allocation.getAvailableSeats() <= 0) {
-                System.out.println(
-                        "Quota exhausted for coach: "
-                                + coach.getId()
-                );
                 continue;
             }
 
             List<Seat> seats =
                     seatRepository.findByCoachOrderBySeatNumberAsc(coach);
-
-            System.out.println(
-                    "Total seats in coach: " + seats.size()
-            );
 
             for (Seat seat : seats) {
                 /*
@@ -158,10 +132,6 @@ public class FirstAvailableSeatStrategy  implements SeatAllocationStrategy{
 
                 return seatForUpdate;            }
         }
-
-        System.out.println(
-                "========== NO SEAT AVAILABLE =========="
-        );
 
         throw new RuntimeException(
                 "No seat available for coach type " +

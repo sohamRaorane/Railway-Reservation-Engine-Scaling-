@@ -19,11 +19,9 @@ import com.soham.railway_reservation_engine.payment.dto.PaymentInitiateResponse;
 import com.soham.railway_reservation_engine.payment.dto.PaymentWebhookRequest;
 import com.soham.railway_reservation_engine.payment.entity.Payment;
 import com.soham.railway_reservation_engine.payment.repository.PaymentRepository;
-import com.soham.railway_reservation_engine.payment.service.PaymentFailureService;
 import com.soham.railway_reservation_engine.seat.service.SeatHoldService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.annotations.processing.Find;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 

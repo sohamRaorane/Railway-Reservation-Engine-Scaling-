@@ -61,8 +61,11 @@ public class BookingCancellationService {
                 LocalDateTime.now()
         );
 
-        //debbugging
-        System.out.println("Refund Amount : " + refund);
+        log.info(
+                "Refund amount calculated: pnr={}, refundAmount={}",
+                booking.getPnr(),
+                refund
+        );
 
 
         //cancel booking

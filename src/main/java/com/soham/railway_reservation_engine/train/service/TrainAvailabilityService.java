@@ -5,6 +5,8 @@ import com.soham.railway_reservation_engine.quotaReservationPool.repository.Quot
 import com.soham.railway_reservation_engine.quotaSeatAllocation.repository.QuotaSeatAllocationRepository;
 import com.soham.railway_reservation_engine.train.dto.TrainAvailabilityResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import java.time.LocalDate;
 @Service
 @RequiredArgsConstructor
 public class TrainAvailabilityService {
+    private static final Logger log = LoggerFactory.getLogger(TrainAvailabilityService.class);
     private final QuotaSeatAllocationRepository quotaSeatAllocationRepository;
     private final QuotaReservationPoolRepository quotaReservationPoolRepository;
     private final RedisTemplate<String, TrainAvailabilityResponse> redisTemplate;
@@ -29,12 +32,12 @@ public class TrainAvailabilityService {
         //Check the redis cache
         TrainAvailabilityResponse cachedData = redisTemplate.opsForValue().get(cacheKey);
         if(cachedData != null) {
-            System.out.println("Returning Availability from the redis cache & Data found in cache for key: " + cacheKey);
+            log.info("Availability served from Redis cache for key: {}", cacheKey);
             return cachedData;
         }
 
         //---- If not present in the redis cache, fetch from the database
-        System.out.println("Fetching Availability From PostgreSQL");
+        log.info("Availability cache miss, fetching from PostgreSQL for key: {}", cacheKey);
 
         Long availableSeats =
                 quotaSeatAllocationRepository.getTotalAvailableSeats(
@@ -66,8 +69,7 @@ public class TrainAvailabilityService {
         // Store the fetched data in the redis cache for future requests
         redisTemplate.opsForValue().set(cacheKey, response , Duration.ofMinutes(5));
 
-        System.out.println("Stored the availability in redis");
-
+        log.info("Availability stored in Redis cache for key: {}", cacheKey);
 
         return response;
     }

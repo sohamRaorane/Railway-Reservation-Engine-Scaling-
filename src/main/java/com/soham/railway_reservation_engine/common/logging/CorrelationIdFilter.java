@@ -3,6 +3,8 @@ package com.soham.railway_reservation_engine.common.logging;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -16,7 +18,8 @@ otherwise use the header which is given by the application
  */
 @Component
 public class CorrelationIdFilter extends OncePerRequestFilter {
-    private  static final String CORRELATION_ID = "correlationId";
+    private static final Logger log = LoggerFactory.getLogger(CorrelationIdFilter.class);
+    private static final String CORRELATION_ID = "correlationId";
 
     @Override
     protected void doFilterInternal(
@@ -35,8 +38,8 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
             MDC.put(CORRELATION_ID, correlationId);
             response.setHeader(CORRELATION_ID, correlationId);
             filterChain.doFilter(request, response);
-        }catch(Exception e){
-            e.printStackTrace();
+        } catch (Exception e) {
+            log.error("Error processing request", e);
         }
         finally {
             MDC.remove(CORRELATION_ID);
