@@ -5,6 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import java.util.Optional;
 
+/**
+ * Data access for quotas; {@code findByCode} resolves a quota from the short code sent by clients.
+ */
 public interface QuotaRepository extends JpaRepository<Quota, Long> {
     Optional<Quota> findByCode(String code);
 }

@@ -10,6 +10,18 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A quota (GN, LD, SS, DEF, TQ) — the customer-class rule set applied to a booking.
+ *
+ * <p><b>Terminology:</b> quotas partition a train's berths into pools with distinct eligibility
+ * rules. The {@code code} is the short identifier sent by the client (e.g. {@code GN}), and is
+ * unique — so the app can look a quota up by code without scanning. Seats under a quota are
+ * tracked per coach via {@code QuotaSeatAllocation}; waiting customers queue via {@code Waitlist}.
+ *
+ * <p>This is a lookup/reference entity (metadata): it has no mutable counters. Availability
+ * counters live on the schedule-specific {@code QuotaReservationPool} instead, because they vary
+ * per train-date rather than being fixed properties of the quota itself.
+ */
 @Entity
 @Table(name = "quotas")
 @Getter
