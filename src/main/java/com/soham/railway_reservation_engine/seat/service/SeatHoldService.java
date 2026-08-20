@@ -15,7 +15,7 @@ import java.time.Duration;
  * The hold therefore reserves the seat for the payment window.
  *
  * <p><b>Why Redis + TTL instead of a DB column?</b> A TTL gives a self-expiring reservation for
- * free: if the user never pays, the key vanishes after {@value HOLD_DURATION} minutes and the seat
+ * free: if the user never pays, the key vanishes after the hold duration (2 minutes) and the seat
  * becomes bookable again — no cleanup job needed. {@code setIfAbsent} ({@code SET NX}) is atomic:
  * only the FIRST concurrent booker of a seat wins, making the check-and-set race-free.
  *
