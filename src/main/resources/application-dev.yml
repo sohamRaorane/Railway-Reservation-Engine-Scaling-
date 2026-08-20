@@ -1,10 +1,11 @@
 spring:
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/railway_db?options=-c%20TimeZone=Asia/Kolkata
+    url: jdbc:postgresql://postgres:5432/railway_db?options=-c%20TimeZone=Asia/Kolkata
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
+
 
   jpa:
     hibernate:
@@ -24,7 +25,7 @@ spring:
 
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
 
   kafka:
