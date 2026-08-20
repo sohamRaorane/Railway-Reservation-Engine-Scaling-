@@ -1,6 +1,5 @@
 package com.soham.railway_reservation_engine.config;
 
-import com.soham.railway_reservation_engine.bookings.dto.BookingResponse;
 import com.soham.railway_reservation_engine.train.dto.TrainAvailabilityResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
