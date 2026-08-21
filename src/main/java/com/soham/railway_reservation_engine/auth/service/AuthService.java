@@ -74,6 +74,7 @@ public class AuthService {
                 .dateOfBirth(registerRequest.getDateOfBirth())
                 .role(Role.USER)
                 .kycStatus(KycStatus.PENDING)
+                .defencePersonnel(false)
                 .build();
         //save the user to the database
         userRepository.save(user);

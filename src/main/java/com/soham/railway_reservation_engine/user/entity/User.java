@@ -82,6 +82,7 @@ public class User {
     private List<RefreshToken> refreshTokens = new ArrayList<>();
 
 
+    @Builder.Default
     @Column(name = "is_defence_personnel", nullable = false)
     private Boolean defencePersonnel = false;
 }

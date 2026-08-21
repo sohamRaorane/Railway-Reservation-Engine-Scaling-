@@ -170,13 +170,20 @@ Then fill in `.env`:
 # Generate a fresh value: openssl rand -base64 64
 JWT_SECRET=your-base64-jwt-secret
 
+# Optional overrides for local runs; Docker Compose already sets these defaults.
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+KAFKA_CONSUMER_GROUP=railway-reservation-group
+
 # Razorpay test-mode keys (https://dashboard.razorpay.com → Settings → API Keys)
 RAZORPAY_KEY_ID=rzp_test_...
 RAZORPAY_KEY_SECRET=...
 RAZORPAY_WEBHOOK_SECRET=...
 ```
 
-> `.env` is git-ignored. Never commit real secrets.
+> `.env` is git-ignored. Spring Boot also loads it automatically in the dev profile.
+> PostgreSQL, Redis, and Kafka are started by Docker Compose; they do not need extra `.env` values unless you want to override the defaults.
 
 ### 2. Run everything with Docker Compose
 
@@ -214,15 +221,18 @@ curl http://localhost:8080/
 
 Configuration lives in `src/main/resources/application-dev.yml`. All secrets are externalized to environment variables (no defaults for secrets — the app fails fast if they are missing):
 
-| Property                   | Env variable          | Default                    |
-| -------------------------- | --------------------- | -------------------------- |
-| `jwt.secret`               | `JWT_SECRET`          | *(required)*               |
-| `razorpay.key-id`          | `RAZORPAY_KEY_ID`     | *(required)*               |
-| `razorpay.key-secret`      | `RAZORPAY_KEY_SECRET` | *(required)*               |
-| `razorpay.webhook-secret`  | `RAZORPAY_WEBHOOK_SECRET` | *(required)*           |
-| `spring.datasource.username` | `DB_USERNAME`       | `postgres`                 |
-| `spring.datasource.password` | `DB_PASSWORD`       | `postgres`                 |
+| Property | Env variable | Default |
+| --- | --- | --- |
+| `jwt.secret` | `JWT_SECRET` | *(required)* |
+| `razorpay.key-id` | `RAZORPAY_KEY_ID` | *(required)* |
+| `razorpay.key-secret` | `RAZORPAY_KEY_SECRET` | *(required)* |
+| `razorpay.webhook-secret` | `RAZORPAY_WEBHOOK_SECRET` | *(required)* |
+| `spring.datasource.username` | `DB_USERNAME` | `postgres` |
+| `spring.datasource.password` | `DB_PASSWORD` | `postgres` |
 | `spring.kafka.bootstrap-servers` | `KAFKA_BOOTSTRAP_SERVERS` | `localhost:9092` |
+| `spring.kafka.consumer.group-id` | `KAFKA_CONSUMER_GROUP` | `railway-reservation-group` |
+
+PostgreSQL, Redis, and Kafka are container services from `docker-compose.yml`; the app connects to them via the defaults above.
 
 ---
 
