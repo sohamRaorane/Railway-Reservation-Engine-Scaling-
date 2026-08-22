@@ -142,9 +142,11 @@ public class ChartPreparationService {
     }
 
     private int getAvailableSeats(Schedule schedule, Quota quota){
-        return quotaSeatAllocationRepository.findByScheduleAndQuota(schedule, quota)
-                .stream()
-                .mapToInt(allocation -> allocation.getAvailableSeats())
-                .sum();
+        Long total = quotaSeatAllocationRepository.getTotalAvailableSeats(
+                schedule.getTrain().getId(),
+                schedule.getJourneyDate(),
+                quota.getCode()
+        );
+        return total != null ? total.intValue() : 0;
     }
 }
