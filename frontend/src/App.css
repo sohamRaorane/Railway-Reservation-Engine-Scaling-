@@ -1,0 +1,5 @@
+/* App-level layout helpers */
+
+.app-main {
+  min-height: calc(100vh - 56px);
+}
